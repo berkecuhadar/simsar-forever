@@ -135,6 +135,7 @@ def describe(game_dir):
         "has_wtf": (p / "WTF").is_dir(),
         "auctionator_version": toc.get("Version"),
         "simsar_export_installed": (addons / "SimsarExport" / "SimsarExport.toc").exists(),
+        "simsar_export_version": auctionator.read_toc(addons / "SimsarExport" / "SimsarExport.toc").get("Version"),
         "accounts": accounts(p),
     }
 

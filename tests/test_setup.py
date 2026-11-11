@@ -80,6 +80,16 @@ def test_setup_flow_switches_realm_database(client):
     assert c.post("/api/setup", json={"region": "kr", "realm": "roleplay-horde"}).status_code == 400
 
 
+def test_install_addon_endpoint(client):
+    c, tmp = client
+    game = tmp / "_forever_"
+    (game / "Interface" / "AddOns").mkdir(parents=True)
+    r = c.post("/api/setup/install-addon", json={"game_dir": str(game)})
+    assert r.status_code == 200
+    assert (game / "Interface" / "AddOns" / "SimsarExport" / "SimsarExport.lua").exists()
+    assert c.post("/api/setup/install-addon", json={"game_dir": str(tmp / "nope")}).status_code == 400
+
+
 def test_rate_limit_respects_retry_after(monkeypatch):
     calls, sleeps = [], []
 

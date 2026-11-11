@@ -44,6 +44,7 @@ export default function Setup() {
   const [professions, setProfessions] = useState<string[]>([]);
   const [check, setCheck] = useState<Record<string, { ok: boolean; status: number | null; rate_limited?: boolean }> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [addonMsg, setAddonMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -184,6 +185,26 @@ export default function Setup() {
           {gameDir && <button onClick={() => { setGameDir(""); setManualDir(""); }}>No game folder</button>}
         </div>
         {inspected && !inspected.exists && <p className="neg">That folder does not exist.</p>}
+        {inspected?.exists && inspected.has_wtf && (
+          <div className="filters">
+            <span className="small">
+              SimsarExport addon:{" "}
+              {!inspected.simsar_export_installed ? <span className="neg">not installed</span>
+                : inspected.simsar_export_version !== info.addon_version
+                  ? <span className="neg">version {inspected.simsar_export_version}, {info.addon_version} available</span>
+                  : <span className="pos">installed ({inspected.simsar_export_version})</span>}
+              <Hint text="The addon saves your recipes, vendor prices, the real auction house cut and deposits so the dashboard does not have to guess them. It only reads; it never posts, buys or clicks." />
+            </span>
+            {(!inspected.simsar_export_installed || inspected.simsar_export_version !== info.addon_version) && (
+              <button onClick={() => api.installAddon(inspected.path).then(
+                (r) => { setAddonMsg(`Installed to ${r.path}. Enable it in the game's AddOns list, then /reload.`); setGameDir(""); setTimeout(() => setGameDir(inspected.path), 50); },
+                (e) => setAddonMsg(String(e)))}>
+                {inspected.simsar_export_installed ? "Update addon" : "Install addon"}
+              </button>
+            )}
+            {addonMsg && <span className="small muted">{addonMsg}</span>}
+          </div>
+        )}
         {inspected?.exists && !inspected.has_wtf && <p className="neg">No WTF folder there. Pick the folder that contains Wow.exe and WTF (usually ..._forever_).</p>}
         {inspected?.accounts.length ? (
           <div className="filters">

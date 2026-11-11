@@ -12,7 +12,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .. import __version__, config, db, discover, forever, refresh, tsm
+from .. import __version__, addon_install, config, db, discover, forever, refresh, tsm
 from .. import groups as groupmod
 from ..analysis import crafts as craftmod
 from ..analysis import econometrics, explain, market
@@ -203,6 +203,7 @@ def create_app(cfg, background=True):
             "catalog": forever.catalog(),
             "professions": sorted({g["profession"] for g in rt.engine.groups if g["role"] != "recipe"}),
             "installs": discover.find_installs(),
+            "addon_version": addon_install.shipped_version(),
             "selected": discover.describe(game_dir) if game_dir else None,
         }
 
@@ -227,6 +228,16 @@ def create_app(cfg, background=True):
             except requests.RequestException as e:
                 out[kind] = {"url": url, "status": None, "ok": False, "error": str(e)}
         return out
+
+    @app.post("/api/setup/install-addon")
+    def setup_install_addon(body: dict = Body(...)):
+        if not rt.background:
+            raise HTTPException(409, "not available in demo mode")
+        try:
+            target = addon_install.install(body.get("game_dir"))
+        except addon_install.InstallError as e:
+            raise HTTPException(400, str(e))
+        return {"ok": True, "path": str(target), "version": addon_install.shipped_version()}
 
     @app.post("/api/setup")
     def setup_save(body: dict = Body(...)):

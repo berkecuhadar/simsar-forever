@@ -172,6 +172,7 @@ export interface Install {
   has_wtf: boolean;
   auctionator_version: string | null;
   simsar_export_installed: boolean;
+  simsar_export_version: string | null;
   accounts: { name: string; has_auctionator: boolean; auctionator_mtime: number | null; has_simsar_export: boolean }[];
   auctionator_realms?: { key: string; items: number }[];
 }
@@ -184,6 +185,7 @@ export interface SetupInfo {
     factions: Record<string, string> };
   professions: string[];
   installs: Install[];
+  addon_version: string | null;
 }
 
 export interface Alert {
@@ -248,6 +250,11 @@ export const api = {
   setupCheck: (region: string, realm: string | null) =>
     get<Record<string, { ok: boolean; status: number | null; rate_limited?: boolean }>>(
       `/api/setup/check?region=${region}${realm ? `&realm=${realm}` : ""}`),
+  installAddon: async (game_dir: string) => {
+    const r = await fetch("/api/setup/install-addon", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game_dir }) });
+    if (!r.ok) throw new Error((await r.json()).detail ?? `HTTP ${r.status}`);
+    return r.json() as Promise<{ path: string; version: string }>;
+  },
   setupSave: async (body: object) => {
     const r = await fetch("/api/setup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!r.ok) throw new Error((await r.json()).detail ?? `HTTP ${r.status}`);
