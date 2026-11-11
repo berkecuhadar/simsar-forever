@@ -4,6 +4,8 @@ from pathlib import Path
 
 import yaml
 
+DEMO_SUFFIX = re.compile(r" \(demo\)$")
+
 
 def _compile(patterns, key):
     out = []
@@ -48,6 +50,7 @@ def assign(names, groups, recipe_items=None):
     recipe_items = {k.lower(): v for k, v in (recipe_items or {}).items()}
     out = {}
     for item_id, name in names.items():
+        name = DEMO_SUFFIX.sub("", name or "")
         hits = []
         for g in groups:
             if item_id in g["ids"] or item_id in recipe_items.get(g["profession"].lower(), ()):
