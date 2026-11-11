@@ -1,7 +1,7 @@
 # Sets Simsar up on first run, then starts the dashboard.
 #   powershell -ExecutionPolicy Bypass -File start.ps1           start the dashboard
 #   powershell -ExecutionPolicy Bypass -File start.ps1 -Demo     start with synthetic demo data
-param([switch]$Demo, [switch]$Rebuild)
+param([switch]$Demo, [switch]$Rebuild, [switch]$NoBrowser)
 
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
@@ -43,4 +43,6 @@ if (-not (Test-Path config.yaml)) {
 }
 
 $simsar = Join-Path $PSScriptRoot ".venv\Scripts\simsar.exe"
-if ($Demo) { & $simsar demo } else { & $simsar serve }
+$extra = @()
+if ($NoBrowser) { $extra += "--no-browser" }
+if ($Demo) { & $simsar demo @extra } else { & $simsar serve @extra }
