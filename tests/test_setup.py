@@ -90,23 +90,21 @@ def test_install_addon_endpoint(client):
     assert c.post("/api/setup/install-addon", json={"game_dir": str(tmp / "nope")}).status_code == 400
 
 
-def test_rate_limit_respects_retry_after(monkeypatch):
+def test_rate_limit_gives_up_without_retrying(monkeypatch):
     calls, sleeps = [], []
 
     class R:
-        def __init__(self, status, headers=None):
-            self.status_code, self.headers, self.content = status, headers or {}, b"itemId\n"
-
-    responses = [R(429, {"Retry-After": "3"}), R(200)]
+        status_code, headers, content = 429, {"Retry-After": "3"}, b""
 
     class S:
         def get(self, url, headers, timeout):
             calls.append(url)
-            return responses.pop(0)
+            return R()
 
     monkeypatch.setattr(tsm.time, "sleep", sleeps.append)
-    status, _, _ = tsm.download("http://x", 5, session=S())
-    assert status == 200 and sleeps == [3.0]
+    with pytest.raises(tsm.TsmError, match="rate limited"):
+        tsm.download("http://x", 5, session=S())
+    assert len(calls) == 1 and sleeps == []
 
 
 def test_install_removes_the_old_addon_name(tmp_path):

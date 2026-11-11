@@ -128,9 +128,9 @@ def download(url, timeout, etag=None, attempts=3, session=None):
             if r.status_code in (404, 403, 410):
                 return r.status_code, None, None
             if r.status_code == 429:
-                # The files are public but the host does rate limit bursts of requests.
-                last_error = TsmError("rate limited by TSM (HTTP 429); will try again on the next check")
-                wait = _retry_after(r.headers.get("Retry-After"), wait)
+                # The files are public but the host rate limits. Retrying right away only extends the
+                # block, so give up until the next scheduled check.
+                raise TsmError("rate limited by TSM (HTTP 429); will try again on the next check")
             else:
                 last_error = TsmError(f"HTTP {r.status_code}")
         if attempt + 1 < attempts:
@@ -138,11 +138,7 @@ def download(url, timeout, etag=None, attempts=3, session=None):
     raise TsmError(f"download failed after {attempts} attempts: {last_error}")
 
 
-def _retry_after(value, default):
-    try:
-        return min(max(float(value), 1), 120)
-    except (TypeError, ValueError):
-        return default
+
 
 
 def fetch(cfg, conn, session=None):
