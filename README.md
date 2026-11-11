@@ -19,16 +19,23 @@ anything, and it cannot promise a profit.
 
 - Windows (other systems work but the start script is PowerShell)
 - Python 3.12 or newer
-- Node.js 20 or newer, only to build the web UI once
+- Node.js 20 or newer, only when running from source (release archives include the built UI)
 - WoW Forever with [Auctionator](https://www.curseforge.com/wow/addons/auctionator) for your own scans (optional but recommended)
 
 ## Quick start
+
+Download `simsar-forever-<version>.zip` from the releases page, extract it anywhere, and double-click
+`start.bat`. The release already contains the built web UI, so only Python is needed.
+
+From source instead (needs Node.js to build the UI on the first run):
 
 ```powershell
 git clone <this repository> simsar-forever
 cd simsar-forever
 .\start.bat
 ```
+
+To stop the dashboard, close its console window or press Ctrl+C in it.
 
 The first run creates a virtual environment, installs the Python packages, builds the UI and opens
 the dashboard at <http://127.0.0.1:8765/> on its **setup page**:
@@ -159,6 +166,17 @@ cd frontend; npm run dev                  # UI with hot reload, proxying /api to
 ```
 
 The browser test uses Edge or Chrome if one is installed and is skipped otherwise.
+
+## Building a release
+
+```powershell
+.venv\Scripts\python scriptsuild_release.py --test
+```
+
+Writes `dist/simsar-forever-<version>.zip` (app with the built UI), `dist/SimsarForeverExport-<version>.zip`
+(the addon, ready for CurseForge) and `dist/SHA256SUMS.txt`. Bump the version in
+`simsar_forever/__init__.py`, `pyproject.toml`, `frontend/package.json` and the addon `.toc` together;
+the script refuses to build when they disagree or the working tree is not committed.
 
 ## License
 
