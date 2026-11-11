@@ -93,7 +93,8 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
     available = {r[0]: r[1] for r in conn.execute(
         "SELECT item_id, available FROM ato_daily d WHERE day_ts = "
         "(SELECT MAX(day_ts) FROM ato_daily WHERE item_id = d.item_id)")}
-    info = {r["item_id"]: dict(r) for r in conn.execute("SELECT item_id, name, vendor_sell, vendor_buy FROM items")}
+    info = {r["item_id"]: dict(r) for r in conn.execute(
+        "SELECT item_id, name, vendor_sell, vendor_buy, quality, icon_id FROM items")}
     history = load_history(conn, now - a["history_days"] * 86400)
 
     # Vendor-only reagents never reach the auction house but recipes still need their price.
@@ -195,6 +196,8 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
             "group": keys[0] if keys else None,
             "vendor_sell": vendor,
             "vendor_buy": (info.get(item_id) or {}).get("vendor_buy"),
+            "quality": (info.get(item_id) or {}).get("quality"),
+            "icon_id": (info.get(item_id) or {}).get("icon_id"),
             "price_now": price_now,
             "price_src": price_src,
             "price_age_h": (now - price_ts) / 3600 if price_ts else None,

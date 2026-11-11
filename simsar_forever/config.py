@@ -47,6 +47,11 @@ DEFAULTS = {
         "min_craft_profit_gold": 5,
         "min_sales_per_day": 1,
     },
+    "icons": {
+        # Item icons come from Blizzard's render CDN; the file-id-to-name map from the community
+        # listfile (one 150 MB download, of which only the icon rows are kept).
+        "enabled": True,
+    },
     "storage": {
         "db_path": "data/{game_type}-{region}-{realm}.db",
         "retain_days": 180,

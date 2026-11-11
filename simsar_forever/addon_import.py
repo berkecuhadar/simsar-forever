@@ -81,6 +81,9 @@ def import_file(conn, path):
                 looks[int(item_id)] = (_int(info.get("quality")), _int(info.get("icon")))
     db.upsert_names(conn, names)
     db.upsert_vendor_prices(conn, vendor)
+    for item_id, icon in _items(data.get("icons")):
+        if _int(item_id) and _int(icon) and int(item_id) not in looks:
+            looks[int(item_id)] = (None, int(icon))
     db.upsert_item_looks(conn, looks)
     merchant = {}
     for item_id, m in _items(data.get("merchant")):

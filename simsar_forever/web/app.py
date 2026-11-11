@@ -12,7 +12,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .. import __version__, addon_install, config, db, discover, forever, refresh, tsm
+from .. import __version__, addon_install, config, db, discover, forever, icons, refresh, tsm
 from .. import groups as groupmod
 from ..analysis import crafts as craftmod
 from ..analysis import econometrics, explain, inventory, market
@@ -26,7 +26,7 @@ ITEM_LIST_FIELDS = (
     "sell_ref", "net_sell", "sale_rate", "sold_per_day_region", "my_sales_per_day", "available",
     "turnover_day", "income_day", "flip_profit", "flip_margin", "flip_profit_day", "volatility", "trend",
     "reference", "disc_ref", "disc_hist", "period_min", "period_max", "n_points", "confidence", "score",
-    "label", "flags", "vendor_sell", "data_age_h",
+    "label", "flags", "vendor_sell", "data_age_h", "icon_id", "quality",
 )
 
 
@@ -46,6 +46,7 @@ class Runtime:
     def _open(self, cfg):
         self.cfg = cfg
         self.path = config.db_path(cfg)
+        self.icons = icons.Icons(self.path.parent, cfg["icons"]["enabled"])
         self.engine = Engine(cfg, db.connect(self.path))
         self.worker = refresh.Background(cfg, self.path, self.engine) if self.background else None
 
@@ -94,6 +95,7 @@ def create_app(cfg, background=True):
         out = statusmod.build(rt.cfg, rt.conn(), rt.engine.result())
         out["configured"] = rt.cfg["_exists"] or out["demo"]
         out["realm_label"] = forever.label(rt.cfg["tsm"]["region"], rt.cfg["tsm"].get("realm"))
+        out["icons"] = rt.icons.status if rt.icons.names() is None else "ready"
         return out
 
     @app.get("/api/overview")
@@ -158,6 +160,22 @@ def create_app(cfg, background=True):
         if profession:
             rows = [r for r in rows if r["profession"].lower() == profession.lower()]
         return rows
+
+    icon_cache = {"Cache-Control": "public, max-age=604800"}
+
+    @app.get("/api/icons/coin/{kind}.jpg", include_in_schema=False)
+    def coin_icon(kind: str):
+        path = rt.icons.path_for_name(icons.COINS[kind]) if kind in icons.COINS else None
+        if not path:
+            raise HTTPException(404, "icon not available")
+        return FileResponse(path, media_type="image/jpeg", headers=icon_cache)
+
+    @app.get("/api/icons/{file_id:int}.jpg", include_in_schema=False)
+    def item_icon(file_id: int):
+        path = rt.icons.path_for_id(file_id)
+        if not path:
+            raise HTTPException(404, "icon not available")
+        return FileResponse(path, media_type="image/jpeg", headers=icon_cache)
 
     @app.get("/api/inventory")
     def inventory_view():

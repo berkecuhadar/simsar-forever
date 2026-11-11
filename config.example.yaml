@@ -56,6 +56,11 @@ alerts:
   min_craft_profit_gold: 5     # alert when a craft makes at least this much per craft
   min_sales_per_day: 1         # ignore alerts on items that barely sell
 
+icons:
+  # Item and coin icons from render.worldofwarcraft.com, cached in data/icons. The first use
+  # downloads the community listfile (about 150 MB) once to map icon ids to names.
+  enabled: true
+
 storage:
   db_path: "data/{game_type}-{region}-{realm}.db"   # one database per realm
   retain_days: 180

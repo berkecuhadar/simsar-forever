@@ -413,6 +413,34 @@ local function scanBank()
   c.bankTime = time()
 end
 
+-- Icon file ids of every item the client knows, so the dashboard can show item icons.
+-- GetItemInfoInstant answers from local data without asking the server; the scan runs once per
+-- client build, a few thousand ids per frame.
+local ICON_SCAN_MAX_ID = 300000
+local ICON_SCAN_STEP = 4000
+
+local function scanIcons()
+  if not GetItemInfoInstant then return end
+  local d = db()
+  local build = select(2, GetBuildInfo())
+  if d.iconsBuild == build and d.icons then return end
+  local icons, nextID = {}, 1
+  local function step()
+    local last = math.min(nextID + ICON_SCAN_STEP - 1, ICON_SCAN_MAX_ID)
+    for id = nextID, last do
+      local _, _, _, _, icon = GetItemInfoInstant(id)
+      if icon then icons[id] = icon end
+    end
+    nextID = last + 1
+    if nextID <= ICON_SCAN_MAX_ID then
+      C_Timer.After(0, step)
+    else
+      d.icons, d.iconsBuild = icons, build
+    end
+  end
+  step()
+end
+
 local function diag()
   local function has(x) return x and "yes" or "no" end
   local version, build, _, interface = GetBuildInfo()
@@ -470,6 +498,7 @@ frame:SetScript("OnEvent", function(_, event)
     db().realm = GetRealmName()
     db().faction = UnitFactionGroup("player")
     later("bags", scanBags)
+    later("icons", scanIcons)
     if GameTooltip and GameTooltip.HookScript then
       pcall(GameTooltip.HookScript, GameTooltip, "OnTooltipSetItem", function(tip) pcall(onItemTooltip, tip) end)
     end
