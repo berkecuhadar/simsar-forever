@@ -1,6 +1,7 @@
 # Sets Simsar Forever up on first run, then starts the dashboard.
-#   powershell -ExecutionPolicy Bypass -File start.ps1           start the dashboard
-#   powershell -ExecutionPolicy Bypass -File start.ps1 -Demo     start with synthetic demo data
+#   powershell -ExecutionPolicy Bypass -File start.ps1             start the dashboard
+#   powershell -ExecutionPolicy Bypass -File start.ps1 -Demo       start with synthetic demo data
+#   powershell -ExecutionPolicy Bypass -File start.ps1 -NoBrowser  do not open a browser tab
 param([switch]$Demo, [switch]$Rebuild, [switch]$NoBrowser)
 
 $ErrorActionPreference = "Stop"
@@ -14,13 +15,17 @@ if (-not (Test-Path $venvPython)) {
     if (-not (Test-Path $venvPython)) { throw "Could not create .venv. Install Python 3.12 or newer." }
 }
 
+# Reinstall when dependencies changed or the folder was moved or renamed (the editable install
+# remembers the old path).
 $stamp = Join-Path $PSScriptRoot ".venv\.simsar-installed"
-if (-not (Test-Path $stamp) -or (Get-Item pyproject.toml).LastWriteTime -gt (Get-Item $stamp).LastWriteTime) {
+$installedFrom = ""
+if (Test-Path $stamp) { $installedFrom = (Get-Content $stamp -Raw).Trim() }
+if ($installedFrom -ne $PSScriptRoot -or (Get-Item pyproject.toml).LastWriteTime -gt (Get-Item $stamp).LastWriteTime) {
     Write-Host "Installing Python packages..."
     & $venvPython -m pip install --quiet --upgrade pip
     & $venvPython -m pip install --quiet -e .
     if ($LASTEXITCODE -ne 0) { throw "pip install failed" }
-    New-Item -ItemType File -Force $stamp | Out-Null
+    Set-Content -Path $stamp -Value $PSScriptRoot -Encoding utf8
 }
 
 $index = Join-Path $PSScriptRoot "simsar\web\static\index.html"
@@ -37,8 +42,6 @@ if ($Rebuild -or -not (Test-Path $index) -or $sources.LastWriteTime -gt (Get-Ite
     if (-not (Test-Path $index)) { throw "UI build failed" }
 }
 
-
-$simsar = Join-Path $PSScriptRoot ".venv\Scripts\simsar.exe"
 $extra = @()
 if ($NoBrowser) { $extra += "--no-browser" }
-if ($Demo) { & $simsar demo @extra } else { & $simsar serve @extra }
+if ($Demo) { & $venvPython -m simsar demo @extra } else { & $venvPython -m simsar serve @extra }
