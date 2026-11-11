@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from .. import __version__, config, db, discover, forever, refresh, tsm
 from .. import groups as groupmod
 from ..analysis import crafts as craftmod
-from ..analysis import explain, market
+from ..analysis import econometrics, explain, market
 from ..analysis.engine import Engine
 from . import status as statusmod
 
@@ -114,12 +114,7 @@ def create_app(cfg, background=True):
             rows = [i for i in rows if i["groups"]]
         return [{k: i.get(k) for k in ITEM_LIST_FIELDS} for i in rows]
 
-    @app.get("/api/items/{item_id}")
-    def item(item_id: int):
-        result = rt.engine.result()
-        it = result["by_id"].get(item_id)
-        if not it:
-            raise HTTPException(404, "unknown item")
+    def history(item_id):
         c = rt.conn()
         since = time.time() - rt.cfg["storage"]["retain_days"] * 86400
         realm = [dict(r) for r in c.execute(
@@ -134,14 +129,28 @@ def create_app(cfg, background=True):
         postings = [dict(r) for r in c.execute(
             "SELECT posted_at AS t, price, quantity FROM my_postings WHERE item_id = ? ORDER BY posted_at",
             (item_id,))]
+        return {"realm": realm, "region": region, "auctionator": daily, "postings": postings}
+
+    @app.get("/api/items/{item_id}")
+    def item(item_id: int):
+        result = rt.engine.result()
+        it = result["by_id"].get(item_id)
+        if not it:
+            raise HTTPException(404, "unknown item")
         used_in = [x for x in result["crafts"]
                    if x["product_id"] == item_id or any(r["item_id"] == item_id for r in x["reagents"])]
         return {
             "item": it,
             "explanation": explain.item(it, result["fees"], rt.cfg),
-            "history": {"realm": realm, "region": region, "auctionator": daily, "postings": postings},
+            "history": history(item_id),
             "crafts": used_in,
         }
+
+    @app.get("/api/items/{item_id}/stats")
+    def item_stats(item_id: int):
+        if item_id not in rt.engine.result()["by_id"]:
+            raise HTTPException(404, "unknown item")
+        return econometrics.analyse(history(item_id))
 
     @app.get("/api/crafts")
     def crafts(profession: str | None = None):

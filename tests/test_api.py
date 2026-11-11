@@ -62,3 +62,10 @@ def test_config_rejects_public_host(tmp_path):
     f.write_text("server:\n  host: 0.0.0.0\n")
     with pytest.raises(config.ConfigError):
         config.load(f)
+
+
+def test_item_stats(client):
+    items = client.get("/api/items").json()
+    stats = client.get(f"/api/items/{items[0]['item_id']}/stats").json()
+    assert set(stats) == {"mean_reversion", "forecast", "elasticity", "timing"}
+    assert stats["forecast"]["ok"]          # the demo has 14 days of prices
