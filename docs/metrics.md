@@ -17,9 +17,8 @@ Settings referred to below live in `config.yaml` (defaults in `config.example.ya
 | `sold_per_day_region` | TSM region `soldPerDay` | Units sold per day, region-wide. |
 | Auctionator price | `AUCTIONATOR_PRICE_DATABASE` `m` | Last minimum price your client saw. |
 | Auctionator daily | `h`, `l`, `a` per scan day | Highest and lowest minimum price of the day, most units seen. |
-| `vendor_sell` | Auctionator vendor cache, SimsarForeverExport | What a vendor pays you. Drives the deposit. |
+| `vendor_sell` | Auctionator vendor cache, SimsarForeverExport | What a vendor pays you. |
 | `vendor_buy` | SimsarForeverExport (merchant windows) | What a vendor charges. Only unlimited-stock items. |
-| AH cut, deposit rate | SimsarForeverExport (sale mails, posting) | Fall back to `economy.ah_cut` and `economy.deposit_rate`. |
 
 ## Prices
 
@@ -45,36 +44,18 @@ cheaper than the reference.
 
 ## Fees
 
-**Deposit per unit**:
+The auction house keeps a cut of every sale: **5% on the Alliance and Horde auction houses, 15% on
+the neutral one** (`economy.auction_house`, chosen in Settings; `economy.ah_cut` overrides it).
 
 ```
-deposit = max(vendor_sell * deposit_rate, min_deposit / listing_size)
-```
-
-Refunded when the item sells, lost when the listing expires or is cancelled. On WoW Forever a
-listing costs at least 1 silver whatever its size: three posts of 3 to 5 units with a 6 copper
-vendor price each cost exactly 100 copper (November 2026). `min_deposit` is that floor per listing
-and `listing_size` the number of units you usually put in one listing, which spreads the floor.
-SimsarForeverExport measures both the floor (several identical smallest deposits for different
-quantities) and the rate (posts above the floor). Measurements for the duration you actually post
-with replace `economy.auction_hours`. With no vendor price only the floor share is counted, and
-the item is flagged `no_vendor_price` when even that is zero.
-
-**Listings per sale**: `min(1 / sale_rate, economy.max_relists)`. A 25% sale rate means one listing
-in four sells, so four listings per sale. A missing or zero sale rate uses the cap.
-
-**You keep per sale** (`net_sell`):
-
-```
-net_per_sale(p) = p * (1 - ah_cut) - deposit * (listings_per_sale - 1)
+net_per_sale(p) = p * (1 - ah_cut)
 net_sell        = net_per_sale(sell_price)
 ```
 
-The last listing's deposit is refunded, so only `listings_per_sale - 1` deposits are lost.
-
-Failure modes: TSM's sale rate is region-wide and averages over all sellers; underpricing sells
-faster than this suggests, overpricing slower. The deposit formula for Forever is unverified until
-SimsarForeverExport has recorded posts; the default rate is a guess.
+Listing deposits are deliberately left out: they are refunded when an item sells, and Simsar
+Forever does not try to guess how often your listings expire. Items with a low sale rate are flagged
+in the commentary instead. SimsarForeverExport still records sale mails; when the cut they show
+differs from the configured one, the data status page says so.
 
 ## Volume
 
@@ -165,7 +146,6 @@ Labels describe flipping. For items you gather, look at income per day instead.
 | `possible_misprice` | `price_now < 0.4 * market` |
 | `not_live` | price from TSM market value, or from a TSM scan older than the stale limit |
 | `low_confidence` | too few points for volatility |
-| `no_vendor_price` | deposit not included |
 
 ## Crafting
 
@@ -200,6 +180,23 @@ A reagent with no AH data falls back to `price_now * (1 - ah_cut)` for its sale 
 Failure modes: recipes reported by the trainer or seen in tooltips are only as good as the game's
 tooltip text; recipes from `recipes.yaml` are typed by hand. Selling many crafted items at once
 pushes the price down; Simsar Forever treats prices as fixed.
+
+## Bags and bank
+
+SimsarForeverExport saves every character's bags whenever they change and the bank whenever it is
+opened (the game writes both to disk on `/reload` or logout). For each item held:
+
+```
+tradable = count - soulbound
+unit_ah  = net_sell                                  (today's realistic price after the cut)
+value    = tradable * max(unit_ah, vendor_sell) + soulbound * vendor_sell
+days_to_sell = tradable / my_sales_per_day
+```
+
+"Sell at" says whether the auction house or a vendor pays more. The value is recomputed from the
+latest prices every time the page loads, so it follows the market without a new scan of your bags.
+It is what the items would fetch, not what you could sell at once: `days_to_sell` shows how long the
+market needs to absorb them.
 
 ## Alerts
 

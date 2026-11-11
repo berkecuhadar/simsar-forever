@@ -4,9 +4,10 @@ Simsar Forever ("simsar" is Turkish for "broker") is a local auction house analy
 combines TradeSkillMaster's public price files with your own Auctionator scans, keeps a growing
 price history in SQLite, and answers practical questions in a web page on your own machine:
 
-- What sells, how fast, and for how much after the auction house cut and deposits?
+- What sells, how fast, and for how much after the auction house cut?
 - Which of my gathered materials earn the most per day, for every profession?
 - Which recipes are worth crafting, and is crafting better than selling the materials?
+- What is everything in my characters' bags and banks worth at today's prices?
 - How long does a recipe take to pay for itself?
 - What is cheap right now, and is it cheap or just falling?
 - Does this price snap back, where is it heading, how sensitive are buyers to it, and when in the
@@ -78,8 +79,9 @@ cannot be mistaken for the real market.
    It records, into its own SavedVariables file:
    - all recipes of the profession window you open (on clients with the modern profession API this
      includes recipes you have not learned yet), trainer recipes, and recipes shown in tooltips;
-   - sale invoices from your mailbox, from which Simsar Forever measures the real auction house cut;
-   - the deposit the game quotes when you post, from which Simsar Forever measures the deposit rate;
+   - the bags of every character you log in with, and the bank whenever you open it, plus gold;
+   - the icon id of every item, so the dashboard can show item icons;
+   - sale invoices from your mailbox, used to double-check the auction house cut;
    - vendor prices of unlimited items (thread, salt, dyes) when you open a vendor.
 
    Type `/sfe` for a summary and `/sfe diag` to see which game APIs are available.
@@ -93,7 +95,8 @@ cannot be mistaken for the real market.
 | TSM auction house file `forever/<region>/realm/<realm>-<faction>` | cheapest listing, market value, historical | about every 3 hours |
 | TSM region file `forever/<region>/region` | average sale price, sale rate, sales per day | about daily |
 | `Auctionator.lua` | your scans: cheapest price, daily low/high, units on sale, your posts, vendor prices | when you scan and `/reload` |
-| `SimsarForeverExport.lua` | recipes, invoices, deposits, vendor buy prices | when you `/reload` |
+| `SimsarForeverExport.lua` | recipes, vendor buy prices, bags, bank, gold, item icons, invoices | when you `/reload` |
+| render.worldofwarcraft.com | item and coin icons, cached in `data/icons` | first time an icon is shown |
 
 TSM's files are public and need no key: <https://tradeskillmaster.com/public-data>. They are
 rate limited, though: a burst of a few dozen requests gets HTTP 429 for a while. Simsar Forever
@@ -109,8 +112,8 @@ Everything has a default; `config.example.yaml` documents each setting. The ones
 | `player.professions` | all | Shown first in the dashboard. |
 | `economy.realm_share` | 0.25 | Share of region-wide sales that happen on your realm. |
 | `economy.market_share` | 0.20 | Share of your realm's sales you expect to win. |
-| `economy.ah_cut` | 0.05 | Used until SimsarForeverExport has measured the real cut. |
-| `economy.deposit_rate` | 0.15 | Deposit as a share of vendor price, until measured. |
+| `economy.auction_house` | `faction` | `faction` (Alliance/Horde, 5% cut) or `neutral` (15% cut). Set in Settings. |
+| `icons.enabled` | true | Item and coin icons from Blizzard's CDN. |
 | `analysis.reference_price` | `market` | What "cheap" is measured against; see below. |
 | `alerts.*` |  | When to raise cheap-item and craft alerts. |
 
@@ -143,8 +146,12 @@ numbering matches its source code. Still unverified:
 
 - **Sales volume per realm.** TSM publishes sales per day only for the whole region. `realm_share`
   and `market_share` are guesses, so every "per day" number is an order of magnitude, not a forecast.
-- **Auction house cut and deposit on Forever.** 5% and 15% are Vanilla-era defaults. Simsar Forever replaces
-  them with measured values once SimsarForeverExport has seen sale mails and posts.
+- **Deposits are not counted.** Profits are after the auction house cut only; listing deposits
+  are refunded on sale and Simsar Forever does not model expired listings.
+- **Icons** need a one-off download of the community listfile (about 150 MB, only the icon rows
+  are kept) to turn the game's icon ids into names. Icons Forever added after the listfile was
+  last updated show as blank squares.
+- **The bank** is only as current as the last time you opened it in game.
 - **SimsarForeverExport on the Forever client.** The addon is tested against a simulated API only. The
   profession, trainer, mail and auction APIs it relies on are each wrapped so a missing one cannot
   break the others; `/sfe diag` shows what works.
