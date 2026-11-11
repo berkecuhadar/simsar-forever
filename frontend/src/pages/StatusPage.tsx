@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import { useApp } from "../context";
-import { ago, dateTime, pct } from "../format";
+import { Money, ago, dateTime, pct } from "../format";
 import { useData } from "../hooks";
 
 function permissionLabel() {
@@ -72,7 +72,9 @@ export default function StatusPage() {
           <h3>Fees</h3>
           <dl className="kv">
             <dt>Auction house cut</dt><dd>{pct(s.fees.ah_cut, 1)} <span className="muted">({s.fees.cut_source})</span></dd>
-            <dt>Deposit</dt><dd>{pct(s.fees.deposit_rate)} of vendor price per {s.fees.auction_hours}h listing <span className="muted">({s.fees.deposit_source})</span></dd>
+            <dt>Deposit</dt><dd>{pct(s.fees.deposit_rate)} of vendor price per {s.fees.auction_hours}h listing,
+              at least <Money value={s.fees.min_deposit} /> per listing <span className="muted">({s.fees.deposit_source})</span></dd>
+            <dt>Listing size</dt><dd>{s.fees.listing_size} units per listing spread the minimum deposit</dd>
             <dt>Relist cap</dt><dd>at most {s.fees.max_relists} listings per sale are assumed</dd>
           </dl>
         </div>

@@ -149,7 +149,8 @@ export interface Status {
   now: number;
   sources: Source[];
   warnings: { level: "demo" | "error" | "warn" | "info"; message: string }[];
-  fees: { ah_cut: number; cut_source: string; deposit_rate: number; deposit_source: string; auction_hours: number; max_relists: number };
+  fees: { ah_cut: number; cut_source: string; deposit_rate: number; deposit_source: string; auction_hours: number; max_relists: number;
+    min_deposit: number; listing_size: number };
   assumptions: {
     realm_share: number; market_share: number; sell_price: string; history_days: number;
     good_margin: number; fast_sales_per_day: number; stale_hours: number; tsm: string; reference_price: string;

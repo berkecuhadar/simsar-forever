@@ -112,7 +112,8 @@ def build(cfg, conn, result, now=None):
         "warnings": warnings,
         "fees": {"ah_cut": fees.ah_cut, "cut_source": fees.cut_source, "deposit_rate": fees.deposit_rate,
                  "deposit_source": fees.deposit_source, "auction_hours": fees.auction_hours,
-                 "max_relists": fees.max_relists},
+                 "max_relists": fees.max_relists, "min_deposit": fees.min_deposit,
+                 "listing_size": fees.listing_size},
         "assumptions": {
             "realm_share": eco["realm_share"], "market_share": eco["market_share"],
             "sell_price": eco["sell_price"], "history_days": cfg["analysis"]["history_days"],
