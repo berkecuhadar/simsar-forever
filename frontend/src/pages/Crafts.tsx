@@ -71,12 +71,18 @@ function Breakdown({ c }: { c: Craft }) {
 }
 
 export default function Crafts() {
-  const { version, status } = useApp();
+  const { version, status, groups } = useApp();
   const { data } = useData(api.crafts, [], version);
   const [f, setF] = useStored("crafts.filters", { profession: "", verdict: "", learnedOnly: false, search: "" });
   const [sorting, setSorting] = useStored("crafts.sort", [{ id: "profit_day", desc: true }]);
 
-  const professions = useMemo(() => [...new Set((data ?? []).map((c) => c.profession))].sort(), [data]);
+  // Every profession, not only those with recipes so far, so the list does not depend on what was opened in game.
+  const professions = useMemo(() => {
+    const counts = new Map<string, number>();
+    groups.filter((g) => g.role !== "recipe").forEach((g) => counts.set(g.profession, 0));
+    (data ?? []).forEach((c) => counts.set(c.profession, (counts.get(c.profession) ?? 0) + 1));
+    return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [data, groups]);
   const rows = useMemo(() => {
     const q = f.search.trim().toLowerCase();
     return (data ?? []).filter((c) =>
@@ -132,7 +138,7 @@ export default function Crafts() {
       <div className="filters">
         <select value={f.profession} onChange={(e) => set("profession", e.target.value)}>
           <option value="">All professions</option>
-          {professions.map((p) => <option key={p}>{p}</option>)}
+          {professions.map(([p, n]) => <option key={p} value={p}>{p} ({n ? `${n} recipes` : "no recipes yet"})</option>)}
         </select>
         <select value={f.verdict} onChange={(e) => set("verdict", e.target.value)}>
           <option value="">Any verdict</option>

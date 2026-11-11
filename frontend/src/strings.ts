@@ -27,7 +27,6 @@ export const FLAGS: Record<Flag, string> = {
   possible_misprice: "Odd listing",
   not_live: "Not live",
   low_confidence: "Few points",
-  no_vendor_price: "No deposit",
 };
 
 export const FLAG_HINTS: Record<Flag, string> = {
@@ -39,7 +38,6 @@ export const FLAG_HINTS: Record<Flag, string> = {
   possible_misprice: "The cheapest listing is far below market value: a mistake, a bait listing, or a single cheap unit.",
   not_live: "No recent Auctionator scan for this item, so 'price now' comes from TSM's last scan.",
   low_confidence: "Too few price points to judge volatility yet. History builds up as Simsar Forever runs.",
-  no_vendor_price: "Vendor price unknown, so the listing deposit is not included in the fees.",
 };
 
 export const VERDICTS: Record<Verdict, string> = {
@@ -72,7 +70,7 @@ export const COLUMNS: Record<string, { title: string; hint: string }> = {
   historical: { title: "Historical", hint: "TSM's long-term (60 day) average price. On a new server it still includes launch-week prices, so Simsar Forever compares against the two-week market value by default." },
   sell_ref: { title: "Usual price", hint: "Price this item normally sells for: the lower of TSM's average sale price and the realm market value." },
   sell_price: { title: "Sell at", hint: "Price you can realistically sell at today: the usual price, but never above the cheapest competing listing." },
-  net_sell: { title: "You keep", hint: "What one sale leaves you after the auction house cut and the deposits you lose on listings that expire first." },
+  net_sell: { title: "You keep", hint: "What one sale leaves you after the auction house cut: 5% on the Alliance and Horde auction houses, 15% on the neutral one." },
   sale_rate: { title: "Sale rate", hint: "Share of listings that actually sell (region-wide). 25% means about four listings per sale." },
   sold_per_day_region: { title: "Sold/day (region)", hint: "Units sold per day across the whole region, from TSM." },
   my_sales_per_day: { title: "Your sales/day", hint: "Region sales x your realm's share x your share of that realm. Both shares are settings." },
@@ -92,7 +90,6 @@ export const COLUMNS: Record<string, { title: string; hint: string }> = {
   flags: { title: "Warnings", hint: "Things to check before acting. Hover a warning for details." },
   period_min: { title: "Low", hint: "Lowest price seen in the analysis window." },
   period_max: { title: "High", hint: "Highest price seen in the analysis window." },
-  deposit: { title: "Deposit", hint: "Deposit for listing one unit. You get it back when the item sells and lose it when the listing expires." },
 };
 
 export const CRAFT_COLUMNS: Record<string, { title: string; hint: string }> = {
@@ -111,9 +108,8 @@ export const CRAFT_COLUMNS: Record<string, { title: string; hint: string }> = {
 
 export const GLOSSARY: { term: string; text: string }[] = [
   { term: "Copper, silver, gold", text: "All prices are stored in copper. 100 copper = 1 silver, 100 silver = 1 gold." },
-  { term: "Auction house cut", text: "Share of the sale price the auction house keeps when something sells. Vanilla used 5% on faction auction houses and 15% on the neutral one. Simsar Forever measures the real value from your sale mails once the SimsarForeverExport addon has seen some." },
-  { term: "Deposit", text: "A fee paid when you post an auction, based on the item's vendor price and the duration. It is refunded if the item sells and lost if the listing expires or you cancel it. Items that rarely sell therefore cost you deposits again and again." },
-  { term: "Sale rate", text: "The share of listings that end in a sale. With a 20% sale rate you list an item five times on average before it sells, losing four deposits on the way." },
+  { term: "Auction house cut", text: "Share of the sale price the auction house keeps when something sells: 5% on the Alliance and Horde auction houses, 15% on the neutral one. Choose which one you sell on in Settings." },
+  { term: "Sale rate", text: "The share of listings that end in a sale, across the region. With a 20% sale rate most listings expire unsold, so expect to relist several times." },
   { term: "Market value", text: "TSM's estimate of the normal price on your realm, based on the last two weeks of scans." },
   { term: "Historical price", text: "TSM's long-term average (about 60 days). On an established server it is a good yardstick for 'cheap' or 'expensive'. WoW Forever launched in November 2026, so for now this average is pulled up by launch-week prices that are not coming back; Simsar Forever therefore measures cheapness against the two-week market value unless you change analysis.reference_price." },
   { term: "Mean reversion", text: "Prices that move far from their usual level tend to come back. That makes items far below it candidates for buying, and items far above it risky to buy. It is a tendency, not a rule: a price can also be low because supply grew for good." },

@@ -1,6 +1,6 @@
 export type Flag =
   | "stale" | "no_volume" | "thin_volume" | "bubble" | "cheap"
-  | "possible_misprice" | "not_live" | "low_confidence" | "no_vendor_price";
+  | "possible_misprice" | "not_live" | "low_confidence";
 
 export type Label = "fast_profitable" | "fast_thin" | "slow_profitable" | "avoid" | "unknown";
 
@@ -37,9 +37,10 @@ export interface Item {
   score: number | null;
   label: Label;
   flags: Flag[];
-  deposit: number | null;
   vendor_sell: number | null;
   data_age_h: number | null;
+  icon_id: number | null;
+  quality: number | null;
 }
 
 export interface ItemFull extends Item {
@@ -48,7 +49,6 @@ export interface ItemFull extends Item {
   market_region: number | null;
   avg_sale: number | null;
   sold_per_day_realm: number | null;
-  listings_per_sale: number;
   period_median: number | null;
   n_days: number | null;
   pctile: number | null;
@@ -149,8 +149,8 @@ export interface Status {
   now: number;
   sources: Source[];
   warnings: { level: "demo" | "error" | "warn" | "info"; message: string }[];
-  fees: { ah_cut: number; cut_source: string; deposit_rate: number; deposit_source: string; auction_hours: number; max_relists: number;
-    min_deposit: number; listing_size: number };
+  fees: { ah_cut: number; cut_source: string; auction_house: "faction" | "neutral"; measured_cut: number | null;
+    measured_samples: number };
   assumptions: {
     realm_share: number; market_share: number; sell_price: string; history_days: number;
     good_margin: number; fast_sales_per_day: number; stale_hours: number; tsm: string; reference_price: string;
@@ -163,6 +163,44 @@ export interface Status {
   build_seconds: number;
   configured: boolean;
   realm_label: string;
+}
+
+export interface InventoryItem {
+  char_key: string;
+  item_id: number;
+  name: string;
+  quality: number | null;
+  icon_id: number | null;
+  group: string | null;
+  bags: number;
+  bank: number;
+  count: number;
+  bound: number;
+  price_now: number | null;
+  sell_price: number | null;
+  unit_ah: number | null;
+  vendor_sell: number | null;
+  ah_value: number | null;
+  vendor_value: number | null;
+  value: number;
+  sell_where: "auction" | "vendor" | "bound" | "unknown";
+  my_sales_per_day: number | null;
+  days_to_sell: number | null;
+  flags: Flag[];
+}
+
+export interface Character {
+  char_key: string;
+  name: string | null;
+  realm: string | null;
+  class: string | null;
+  faction: string | null;
+  money: number | null;
+  bags_at: number | null;
+  bank_at: number | null;
+  value?: number;
+  ah_value?: number;
+  items?: number;
 }
 
 export interface Install {
@@ -181,7 +219,7 @@ export interface Install {
 export interface SetupInfo {
   config_exists: boolean;
   current: { region: string; realm: string | null; game_dir: string | null; account: string | null;
-    auctionator_realm: string | null; professions: string[] };
+    auctionator_realm: string | null; professions: string[]; auction_house: "faction" | "neutral" };
   catalog: { regions: { key: string; label: string; realms: string[] }[]; realm_types: Record<string, string>;
     factions: Record<string, string> };
   professions: string[];
@@ -241,6 +279,7 @@ export const api = {
   items: (scope: "tracked" | "all" = "tracked") => get<Item[]>(`/api/items?scope=${scope}`),
   item: (id: number) => get<ItemDetail>(`/api/items/${id}`),
   itemStats: (id: number) => get<ItemStats>(`/api/items/${id}/stats`),
+  inventory: () => get<{ characters: Character[]; items: InventoryItem[]; ah_cut: number; auction_house: string }>("/api/inventory"),
   crafts: () => get<Craft[]>("/api/crafts"),
   alerts: () => get<Alert[]>("/api/alerts"),
   markSeen: () => fetch("/api/alerts/seen", { method: "POST" }),

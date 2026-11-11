@@ -1,3 +1,5 @@
+import { Coin } from "./components/Icons";
+
 export function Money({ value, signed = false }: { value: number | null | undefined; signed?: boolean }) {
   if (value === null || value === undefined || Number.isNaN(value)) return <span className="muted">-</span>;
   const neg = value < 0;
@@ -7,9 +9,9 @@ export function Money({ value, signed = false }: { value: number | null | undefi
   const s = Math.floor(c / 100);
   c -= s * 100;
   const parts: JSX.Element[] = [];
-  if (g) parts.push(<span key="g" className="coin gold">{g.toLocaleString("en-US")}<i>g</i></span>);
-  if (s || (g && c)) parts.push(<span key="s" className="coin silver">{g ? String(s).padStart(2, "0") : s}<i>s</i></span>);
-  if (!g && (c || !parts.length)) parts.push(<span key="c" className="coin copper">{s ? String(c).padStart(2, "0") : c}<i>c</i></span>);
+  if (g) parts.push(<span key="g" className="coin gold">{g.toLocaleString("en-US")}<Coin kind="gold" /></span>);
+  if (s || (g && c)) parts.push(<span key="s" className="coin silver">{g ? String(s).padStart(2, "0") : s}<Coin kind="silver" /></span>);
+  if (!g && (c || !parts.length)) parts.push(<span key="c" className="coin copper">{s ? String(c).padStart(2, "0") : c}<Coin kind="copper" /></span>);
   return (
     <span className={`money ${signed ? (neg ? "neg" : "pos") : ""}`}>
       {neg ? "-" : signed ? "+" : ""}

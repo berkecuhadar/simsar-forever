@@ -145,7 +145,7 @@ th .hint-bubble { text-transform: none; letter-spacing: 0; }
 .flag { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: rgba(240, 167, 66, 0.13); color: var(--amber); white-space: nowrap; }
 .flag-bubble, .flag-possible_misprice, .flag-no_volume { background: rgba(239, 107, 107, 0.13); color: var(--red); }
 .flag-below_historical { background: rgba(76, 195, 138, 0.13); color: var(--green); }
-.flag-not_live, .flag-low_confidence, .flag-no_vendor_price { background: rgba(125, 132, 148, 0.15); color: var(--muted); }
+.flag-not_live, .flag-low_confidence { background: rgba(125, 132, 148, 0.15); color: var(--muted); }
 
 .filters, .tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
 .filters label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
@@ -172,6 +172,18 @@ table.data td.empty { text-align: center; color: var(--muted); padding: 30px; }
 .pager { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 10px; color: var(--muted); }
 
 .item-name { display: inline-flex; align-items: center; gap: 8px; }
+.item-icon { border: 1px solid #3a4150; border-radius: 4px; vertical-align: middle; flex: none; background: #0b0d12; object-fit: cover; }
+.item-icon.empty { display: inline-block; }
+.item-title { display: flex; align-items: center; gap: 12px; }
+.coin-icon { width: 13px; height: 13px; border-radius: 50%; margin-left: 2px; vertical-align: -2px; }
+.char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.char-card { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.char-card.selected { border-color: var(--gold); background: rgba(227, 179, 65, 0.06); }
+.char-name { font-weight: 600; font-size: 15px; }
+.char-value { font-size: 20px; font-weight: 600; }
+.where-auction { background: rgba(76, 195, 138, 0.16); color: var(--green); }
+.where-vendor { background: rgba(90, 167, 240, 0.16); color: var(--blue); }
+.where-bound, .where-unknown { background: rgba(125, 132, 148, 0.16); color: var(--muted); }
 .swatch { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
 .src-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); margin-left: 5px; vertical-align: middle; }
 

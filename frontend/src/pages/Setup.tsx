@@ -42,6 +42,7 @@ export default function Setup() {
   const [account, setAccount] = useState("");
   const [atoRealm, setAtoRealm] = useState("");
   const [professions, setProfessions] = useState<string[]>([]);
+  const [house, setHouse] = useState<"faction" | "neutral">("faction");
   const [check, setCheck] = useState<Record<string, { ok: boolean; status: number | null; rate_limited?: boolean }> | null>(null);
   const [saving, setSaving] = useState(false);
   const [addonMsg, setAddonMsg] = useState<string | null>(null);
@@ -56,6 +57,7 @@ export default function Setup() {
       setFaction(f);
       setRegionOnly(!s.current.realm);
       setProfessions(s.current.professions);
+      setHouse(s.current.auction_house ?? "faction");
       setAccount(s.current.account ?? "");
       setAtoRealm(s.current.auctionator_realm ?? "");
       const dir = s.current.game_dir ?? s.installs[0]?.path ?? "";
@@ -106,7 +108,7 @@ export default function Setup() {
     try {
       await api.setupSave({
         region, realm, game_dir: inspected?.path ?? (gameDir || null), account: account || null,
-        auctionator_realm: atoRealm || null, professions,
+        auctionator_realm: atoRealm || null, professions, auction_house: house,
       });
       refreshStatus();
       navigate("/");
@@ -163,6 +165,17 @@ export default function Setup() {
             <Hint text="Use only region-wide prices. Choose this if TSM has no file for your auction house." />
           </label>
         </div>
+        <div className="filters">
+          <label className="check">
+            <input type="radio" checked={house === "faction"} onChange={() => setHouse("faction")} />
+            I sell on the {regionOnly ? "faction" : info.catalog.factions[faction]} auction house (5% cut)
+          </label>
+          <label className="check">
+            <input type="radio" checked={house === "neutral"} onChange={() => setHouse("neutral")} />
+            I sell on the neutral auction house (15% cut)
+          </label>
+          <Hint text="The cut is what the auction house keeps from each sale. Prices still come from TSM's faction auction house data; TSM publishes no neutral data." />
+        </div>
         <div className="small">
           TSM region file: {checkLine("region")}
           {!regionOnly && <> · auction house file <code>{realm}</code>: {checkLine("realm")}</>}
@@ -193,7 +206,7 @@ export default function Setup() {
                 : inspected.export_addon_version !== info.addon_version
                   ? <span className="neg">version {inspected.export_addon_version}, {info.addon_version} available</span>
                   : <span className="pos">installed ({inspected.export_addon_version})</span>}
-              <Hint text="The addon saves your recipes, vendor prices, the real auction house cut and deposits so the dashboard does not have to guess them. It only reads; it never posts, buys or clicks." />
+              <Hint text="The addon saves your recipes, vendor prices, bags and bank so the dashboard does not have to guess them. It only reads; it never posts, buys or clicks." />
             </span>
             {(!inspected.export_addon_installed || inspected.export_addon_version !== info.addon_version) && (
               <button onClick={() => api.installAddon(inspected.path).then(

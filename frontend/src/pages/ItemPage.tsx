@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Flags, LabelBadge, VerdictBadge } from "../components/Badges";
 import { Chart, THEME, axisStyle, baseOption } from "../components/Chart";
+import { ItemIcon, ItemName } from "../components/Icons";
 import { StatsCard } from "../components/StatsCard";
 import { Hint } from "../components/Hint";
 import { groupTitle, useApp } from "../context";
@@ -93,7 +94,10 @@ export default function ItemPage() {
     <section>
       <div className="page-head">
         <button className="link" onClick={() => navigate(-1)}>Back</button>
-        <h1>{it.name}</h1>
+        <h1 className="item-title">
+          <ItemIcon id={it.icon_id} quality={it.quality} size={40} />
+          <ItemName name={it.name} quality={it.quality} />
+        </h1>
         <div className="row gap">
           <span className="muted">{it.groups.map((g) => groupTitle(groups, g)).join(", ") || "Not in a profession group"}</span>
           <span className="muted">Item {it.item_id}</span>
@@ -136,10 +140,6 @@ export default function ItemPage() {
         <Tile title={`Range (${it.n_days ?? 0} days)`} hint="Lowest and highest prices seen in the analysis window.">
           <span className="small"><Money value={it.period_min} /> - <Money value={it.period_max} /></span>
           <div className="tile-sub">today is above {pct(it.pctile)} of them</div>
-        </Tile>
-        <Tile title="Fees per listing" hint={COLUMNS.deposit.hint}>
-          <Money value={it.deposit} />
-          <div className="tile-sub">{num(it.listings_per_sale)} listings per sale</div>
         </Tile>
       </div>
 

@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Group, Item } from "../api";
 import { Flags, LabelBadge } from "../components/Badges";
+import { ItemIcon, ItemName } from "../components/Icons";
 import { groupColor, groupTitle } from "../context";
 import { Money, num, pct } from "../format";
 import { COLUMNS, FLAGS, LABELS, PRICE_SOURCES } from "../strings";
@@ -8,7 +9,7 @@ import { COLUMNS, FLAGS, LABELS, PRICE_SOURCES } from "../strings";
 type Key = keyof Item;
 
 const MONEY: Key[] = ["price_now", "market", "reference", "historical", "sell_ref", "sell_price", "net_sell", "turnover_day", "income_day",
-  "flip_profit", "flip_profit_day", "score", "period_min", "period_max", "deposit"];
+  "flip_profit", "flip_profit_day", "score", "period_min", "period_max"];
 
 function sortNullsLast(a: number | null, b: number | null) {
   if (a === null && b === null) return 0;
@@ -28,8 +29,10 @@ export function itemColumns(keys: Key[], groups: Group[]): ColumnDef<Item, unkno
         sortingFn: (a, b) => a.original.name.localeCompare(b.original.name),
         cell: ({ row }) => (
           <span className="item-name">
-            <span className="swatch" style={{ background: groupColor(groups, row.original.group) }} />
-            {row.original.name}
+            <ItemIcon id={row.original.icon_id} quality={row.original.quality} />
+            <ItemName name={row.original.name} quality={row.original.quality} />
+            <span className="swatch" title={groupTitle(groups, row.original.group)}
+              style={{ background: groupColor(groups, row.original.group) }} />
           </span>
         ),
       };

@@ -6,6 +6,7 @@ import { ago } from "./format";
 import Crafts from "./pages/Crafts";
 import Gathering from "./pages/Gathering";
 import Glossary from "./pages/Glossary";
+import Inventory from "./pages/Inventory";
 import ItemPage from "./pages/ItemPage";
 import MarketMap from "./pages/MarketMap";
 import Opportunities from "./pages/Opportunities";
@@ -17,7 +18,8 @@ const NAV = [
   ["/", "Overview"],
   ["/opportunities", "Opportunities"],
   ["/crafts", "Crafts"],
-  ["/gathering", "Gathering"],
+  ["/gathering", "What to sell"],
+  ["/inventory", "Bags & bank"],
   ["/map", "Market map"],
   ["/status", "Data status"],
   ["/glossary", "Glossary"],
@@ -110,6 +112,7 @@ export default function App() {
           <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/crafts" element={<Crafts />} />
           <Route path="/gathering" element={<Gathering />} />
+          <Route path="/inventory" element={<Inventory />} />
           <Route path="/map" element={<MarketMap />} />
           <Route path="/status" element={<StatusPage />} />
           <Route path="/glossary" element={<Glossary />} />

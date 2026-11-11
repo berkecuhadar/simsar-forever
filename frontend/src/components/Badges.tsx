@@ -2,7 +2,7 @@ import type { Flag, Label, Verdict } from "../api";
 import { FLAGS, FLAG_HINTS, LABELS, LABEL_HINTS, VERDICTS, VERDICT_HINTS } from "../strings";
 import { Hint } from "./Hint";
 
-const QUIET: Flag[] = ["not_live", "low_confidence", "no_vendor_price"];
+const QUIET: Flag[] = ["not_live", "low_confidence"];
 
 export function LabelBadge({ label }: { label: Label }) {
   return (
