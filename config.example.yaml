@@ -3,6 +3,9 @@
 
 tsm:
   # Public TSM data: https://public-data.tradeskillmaster.com/{game_type}/{region}/realm/{realm}/items.csv
+  # Easiest: use the setup page in the dashboard. Regions: us, eu, tw, kr. Realms are the auction
+  # house slugs <type>-<faction>: normal, pvp, roleplay, roleplay-pvp (tw and kr: normal, pvp)
+  # combined with alliance or horde, for example pvp-horde.
   game_type: forever
   region: eu
   realm: normal-alliance       # set to null to run in region-only mode
@@ -56,7 +59,7 @@ alerts:
   min_sales_per_day: 1         # ignore alerts on items that barely sell
 
 storage:
-  db_path: data/simsar.db
+  db_path: "data/{game_type}-{region}-{realm}.db"   # one database per realm
   retain_days: 180
 
 server:
