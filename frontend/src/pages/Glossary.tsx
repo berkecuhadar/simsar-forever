@@ -5,7 +5,7 @@ export default function Glossary() {
     <section>
       <div className="page-head">
         <h1>Glossary</h1>
-        <p className="lead">The economic terms used in Simsar, in plain language.</p>
+        <p className="lead">The economic terms used in Simsar Forever, in plain language.</p>
       </div>
       <div className="card">
         <dl className="glossary">

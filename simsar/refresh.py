@@ -54,7 +54,7 @@ def import_auctionator(cfg, conn, force=False):
     prev_version = db.get_meta(conn, "ato_addon_version")
     if prev_version and addon_version and prev_version != addon_version:
         warnings.append(f"Auctionator was updated from {prev_version} to {addon_version}. "
-                        "Simsar checked the file format; see below if anything changed.")
+                        "Simsar Forever checked the file format; see below if anything changed.")
     try:
         rep = auctionator.import_file(conn, path, cfg)
     except (auctionator.AuctionatorFormatError, ValueError) as e:
@@ -68,7 +68,7 @@ def import_auctionator(cfg, conn, force=False):
     prev_fp = db.get_meta(conn, "ato_fingerprint")
     if prev_fp and prev_fp != rep["fingerprint"]:
         warnings.append("Auctionator's data layout changed since the last import "
-                        f"(fingerprint {prev_fp} -> {rep['fingerprint']}). Numbers may be off until Simsar is updated.")
+                        f"(fingerprint {prev_fp} -> {rep['fingerprint']}). Numbers may be off until Simsar Forever is updated.")
     if rep["unknown_fields"]:
         warnings.append(f"Auctionator entries contain unknown fields: {', '.join(rep['unknown_fields'])}.")
     rep.update(ok=True, addon_version=addon_version, path=str(path))

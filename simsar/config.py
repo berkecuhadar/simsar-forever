@@ -102,7 +102,7 @@ def validate(cfg):
     if cfg["analysis"]["reference_price"] not in ("market", "historical"):
         raise ConfigError("analysis.reference_price must be 'market' or 'historical'")
     if cfg["server"]["host"] not in ("127.0.0.1", "localhost", "::1"):
-        raise ConfigError("server.host must be a loopback address; Simsar is not meant to be exposed")
+        raise ConfigError("server.host must be a loopback address; Simsar Forever is not meant to be exposed")
 
 
 def db_path(cfg):

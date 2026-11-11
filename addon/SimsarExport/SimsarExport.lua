@@ -1,6 +1,6 @@
--- Simsar Export
+-- Simsar Forever Export
 -- Writes what the game knows about recipes and auction fees to SavedVariables, so the
--- Simsar dashboard can read it. It never posts, buys or clicks anything.
+-- Simsar Forever dashboard can read it. It never posts, buys or clicks anything.
 --
 -- Data is only written to disk on /reload or logout.
 

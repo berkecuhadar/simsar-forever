@@ -13,7 +13,7 @@ import requests
 from . import __version__, db
 
 BASE_URL = "https://public-data.tradeskillmaster.com"
-HEADERS = {"User-Agent": f"simsar/{__version__} (personal market dashboard)"}
+HEADERS = {"User-Agent": f"simsar-forever/{__version__} (personal market dashboard)"}
 
 REALM_COLUMNS = ("itemid", "name", "marketvalue", "minbuyout", "recent", "historical", "updatedat")
 REGION_COLUMNS = ("itemid", "name", "marketvalue", "historical", "avgsaleprice", "salerate",

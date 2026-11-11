@@ -42,7 +42,7 @@ function Header() {
     <header className="topbar">
       <div className="brand">
         <span className="logo">S</span>
-        <span>Simsar</span>
+        <span>Simsar Forever</span>
         <span className="muted small">WoW Forever market</span>
       </div>
       <nav>

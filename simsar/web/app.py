@@ -45,7 +45,7 @@ def create_app(cfg, background=True):
         if worker:
             worker.stop.set()
 
-    app = FastAPI(title="Simsar", version=__version__, docs_url="/api/docs", redoc_url=None, lifespan=lifespan)
+    app = FastAPI(title="Simsar Forever", version=__version__, docs_url="/api/docs", redoc_url=None, lifespan=lifespan)
     allowed_hosts = {f"{h}:{cfg['server']['port']}" for h in ("127.0.0.1", "localhost", "[::1]")}
     allowed_hosts |= {"127.0.0.1", "localhost", "testserver"}
 
@@ -172,5 +172,5 @@ def run(cfg, open_browser=True, background=True):
     url = f"http://{host}:{port}/"
     if open_browser:
         threading.Timer(1.5, lambda: webbrowser.open(url)).start()
-    log.info("Simsar is running at %s (Ctrl+C to stop)", url)
+    log.info("Simsar Forever is running at %s (Ctrl+C to stop)", url)
     uvicorn.run(app, host=host, port=port, log_level="warning")

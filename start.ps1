@@ -1,4 +1,4 @@
-# Sets Simsar up on first run, then starts the dashboard.
+# Sets Simsar Forever up on first run, then starts the dashboard.
 #   powershell -ExecutionPolicy Bypass -File start.ps1           start the dashboard
 #   powershell -ExecutionPolicy Bypass -File start.ps1 -Demo     start with synthetic demo data
 param([switch]$Demo, [switch]$Rebuild, [switch]$NoBrowser)
@@ -39,7 +39,7 @@ if ($Rebuild -or -not (Test-Path $index) -or $sources.LastWriteTime -gt (Get-Ite
 
 if (-not (Test-Path config.yaml)) {
     Copy-Item config.example.yaml config.yaml
-    Write-Host "Created config.yaml. Set wow.game_dir in it so Simsar can read your Auctionator scans."
+    Write-Host "Created config.yaml. Set wow.game_dir in it so Simsar Forever can read your Auctionator scans."
 }
 
 $simsar = Join-Path $PSScriptRoot ".venv\Scripts\simsar.exe"

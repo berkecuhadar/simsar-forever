@@ -1,6 +1,6 @@
 # Metrics
 
-Every number Simsar shows, how it is computed, and when it can mislead. All prices are in copper
+Every number Simsar Forever shows, how it is computed, and when it can mislead. All prices are in copper
 (1 gold = 100 silver = 10,000 copper). Code: `simsar/analysis/`.
 
 Settings referred to below live in `config.yaml` (defaults in `config.example.yaml`).
@@ -76,7 +76,7 @@ income_day         = max(net_sell, 0) * my_sales_per_day
 
 `realm_share` and `market_share` are settings, not measurements. TSM only publishes sales volume
 for the whole region, and nothing in the public data says how it splits across realms or how much
-of it you would win. **This is the largest unverified assumption in Simsar**; treat every "per day"
+of it you would win. **This is the largest unverified assumption in Simsar Forever**; treat every "per day"
 figure as an order of magnitude.
 
 ## Flip (buy low, resell)
@@ -114,7 +114,7 @@ it. Shown only with at least `analysis.min_days_trend` distinct days.
 or below today's price.
 
 Failure modes: TSM scans and your own scans sample the market at different times; a day with only
-one point is as heavy as a day with many. History starts empty and fills as Simsar runs, which is
+one point is as heavy as a day with many. History starts empty and fills as Simsar Forever runs, which is
 why the server should be left running.
 
 ## Confidence, score and labels
@@ -188,7 +188,7 @@ A reagent with no AH data falls back to `price_now * (1 - ah_cut)` for its sale 
 
 Failure modes: recipes reported by the trainer or seen in tooltips are only as good as the game's
 tooltip text; recipes from `recipes.yaml` are typed by hand. Selling many crafted items at once
-pushes the price down; Simsar treats prices as fixed.
+pushes the price down; Simsar Forever treats prices as fixed.
 
 ## Alerts
 

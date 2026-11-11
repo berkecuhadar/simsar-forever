@@ -95,7 +95,7 @@ def cmd_top(cfg, args):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog="simsar", description="Local auction house dashboard for WoW Forever.")
+    parser = argparse.ArgumentParser(prog="simsar-forever", description="Simsar Forever: local auction house dashboard for WoW Forever.")
     parser.add_argument("--config", help="path to config.yaml (default: ./config.yaml)")
     parser.add_argument("-v", "--verbose", action="store_true")
     sub = parser.add_subparsers(dest="command", required=True)

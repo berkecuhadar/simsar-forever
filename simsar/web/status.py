@@ -64,7 +64,7 @@ def build(cfg, conn, result, now=None):
     sources.append(src)
     if not demo:
         if not cfg["wow"].get("game_dir"):
-            warn("info", "Set wow.game_dir in config.yaml so Simsar can read your Auctionator scans.")
+            warn("info", "Set wow.game_dir in config.yaml so Simsar Forever can read your Auctionator scans.")
         for w in db.get_meta(conn, "ato_warnings") or []:
             warn("warn", w)
         if src["last_full_scan"] and now - src["last_full_scan"] > 3 * 86400:
@@ -84,7 +84,7 @@ def build(cfg, conn, result, now=None):
         have = auctionator.read_toc(installed_dir / "SimsarExport.toc").get("Version")
         want = auctionator.read_toc(ADDON_TOC).get("Version")
         if have != want:
-            warn("warn", f"The installed SimsarExport addon is version {have}, this Simsar ships {want}. "
+            warn("warn", f"The installed SimsarExport addon is version {have}, this Simsar Forever ships {want}. "
                          "Run: simsar install-addon")
     installed = bool(installed_dir and (installed_dir / "SimsarExport.toc").exists())
     if not demo and cfg["wow"].get("game_dir") and not has_addon_file:

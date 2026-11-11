@@ -43,7 +43,7 @@ SimsarExport.lua ─► addon_import.py ┘                         └─► cl
 
 ## Auctionator format changes
 
-Auctionator updates itself through CurseForge. On each import Simsar records the addon version
+Auctionator updates itself through CurseForge. On each import Simsar Forever records the addon version
 (from `Auctionator.toc`), the database version (`__dbversion`) and a fingerprint of the entry
 fields. An unknown database version stops the import with an error instead of guessing. A new
 addon version, a changed fingerprint or unknown fields produce warnings on the data status page.

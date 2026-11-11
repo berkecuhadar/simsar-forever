@@ -28,7 +28,7 @@ export default function StatusPage() {
     <section>
       <div className="page-head">
         <h1>Data status</h1>
-        <p className="lead">Where the numbers come from, how old they are, and what Simsar assumes.</p>
+        <p className="lead">Where the numbers come from, how old they are, and what Simsar Forever assumes.</p>
       </div>
 
       <div className="warnings">
@@ -94,7 +94,7 @@ export default function StatusPage() {
       <div className="card" id="alerts">
         <h3>Alerts</h3>
         <p className="muted small">
-          Simsar checks for cheap items and profitable crafts after every data update. Desktop notifications:{" "}
+          Simsar Forever checks for cheap items and profitable crafts after every data update. Desktop notifications:{" "}
           <b>{permissionLabel()}</b>
           {"Notification" in window && Notification.permission === "default" && (
             <> <button onClick={() => Notification.requestPermission().then(() => refreshStatus())}>Enable</button></>
@@ -111,7 +111,7 @@ export default function StatusPage() {
           </ul>
         )}
       </div>
-      <p className="muted small">Simsar {s.version}. Analysis built {ago(s.built_at)} in {s.build_seconds}s over {s.items} items.</p>
+      <p className="muted small">Simsar Forever {s.version}. Analysis built {ago(s.built_at)} in {s.build_seconds}s over {s.items} items.</p>
     </section>
   );
 }

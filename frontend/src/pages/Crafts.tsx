@@ -124,7 +124,7 @@ export default function Crafts() {
           <h3>No recipes yet</h3>
           <p>
             {status?.demo ? "The demo has no recipes." : <>Install the <b>SimsarExport</b> addon (see README), open each
-            profession window and the profession trainer in game, then type <code>/reload</code>. Simsar picks the file
+            profession window and the profession trainer in game, then type <code>/reload</code>. Simsar Forever picks the file
             up within seconds. You can also add recipes by hand in <code>recipes.yaml</code>.</>}
           </p>
         </div>

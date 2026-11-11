@@ -47,7 +47,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         unseen.current = s.alerts_unseen;
       },
-      () => setError("Cannot reach the Simsar server. Is it still running?"),
+      () => setError("Cannot reach the Simsar Forever server. Is it still running?"),
     );
   };
 

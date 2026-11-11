@@ -1,6 +1,6 @@
-# Simsar
+# Simsar Forever
 
-Simsar ("broker" in Turkish) is a local auction house analysis dashboard for **WoW Forever**. It
+Simsar Forever ("simsar" is Turkish for "broker") is a local auction house analysis dashboard for **WoW Forever**. It
 combines TradeSkillMaster's public price files with your own Auctionator scans, keeps a growing
 price history in SQLite, and answers practical questions in a web page on your own machine:
 
@@ -55,7 +55,7 @@ cannot be mistaken for the real market.
 1. **Auctionator full scan.** Open the auction house and run a full scan. To scan automatically
    whenever you open the auction house, enable *Start autoscan when the auction house is opened*
    under `/auctionator config` → Basic.
-2. **Install SimsarExport** (once, and again after updating Simsar):
+2. **Install SimsarExport** (once, and again after updating Simsar Forever):
 
    ```powershell
    .venv\Scripts\simsar install-addon
@@ -64,12 +64,12 @@ cannot be mistaken for the real market.
    It records, into its own SavedVariables file:
    - all recipes of the profession window you open (on clients with the modern profession API this
      includes recipes you have not learned yet), trainer recipes, and recipes shown in tooltips;
-   - sale invoices from your mailbox, from which Simsar measures the real auction house cut;
-   - the deposit the game quotes when you post, from which Simsar measures the deposit rate;
+   - sale invoices from your mailbox, from which Simsar Forever measures the real auction house cut;
+   - the deposit the game quotes when you post, from which Simsar Forever measures the deposit rate;
    - vendor prices of unlimited items (thread, salt, dyes) when you open a vendor.
 
    Type `/simsar` for a summary and `/simsar diag` to see which game APIs are available.
-3. **`/reload` or log out.** The game only writes SavedVariables to disk at that moment. Simsar
+3. **`/reload` or log out.** The game only writes SavedVariables to disk at that moment. Simsar Forever
    notices the new files within seconds.
 
 ## Data sources
@@ -124,7 +124,7 @@ numbering matches its source code. Still unverified:
 
 - **Sales volume per realm.** TSM publishes sales per day only for the whole region. `realm_share`
   and `market_share` are guesses, so every "per day" number is an order of magnitude, not a forecast.
-- **Auction house cut and deposit on Forever.** 5% and 15% are Vanilla-era defaults. Simsar replaces
+- **Auction house cut and deposit on Forever.** 5% and 15% are Vanilla-era defaults. Simsar Forever replaces
   them with measured values once SimsarExport has seen sale mails and posts.
 - **SimsarExport on the Forever client.** The addon is tested against a simulated API only. The
   profession, trainer, mail and auction APIs it relies on are each wrapped so a missing one cannot

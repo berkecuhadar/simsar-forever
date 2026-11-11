@@ -3,9 +3,9 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "simsar"
+name = "simsar-forever"
 version = "0.1.0"
-description = "Local auction house analysis dashboard for WoW Forever"
+description = "Simsar Forever: local auction house analysis dashboard for WoW Forever"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -22,6 +22,7 @@ dependencies = [
 dev = ["httpx>=0.27", "lupa>=2.0", "pytest>=8"]
 
 [project.scripts]
+simsar-forever = "simsar.cli:main"
 simsar = "simsar.cli:main"
 
 [tool.setuptools.packages.find]
