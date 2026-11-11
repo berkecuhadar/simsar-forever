@@ -7,6 +7,19 @@ from pathlib import Path
 from . import db, lua
 
 SUPPORTED_VERSIONS = {1}
+PROFESSIONS = ("Alchemy", "Blacksmithing", "Cooking", "Enchanting", "Engineering", "First Aid", "Fishing",
+               "Herbalism", "Inscription", "Jewelcrafting", "Leatherworking", "Mining", "Skinning", "Tailoring")
+
+
+def profession_name(raw):
+    """'Classic Leatherworking' -> 'Leatherworking'. Unknown names are kept as they are."""
+    text = (raw or "").lower()
+    for p in PROFESSIONS:
+        if p.lower() in text:
+            return p
+    return raw or "?"
+
+
 DURATIONS = (2, 8, 24)
 
 
@@ -79,10 +92,11 @@ def import_file(conn, path):
             continue
         product_id = _int(r.get("itemID"))
         _store_recipe(
-            conn, f"addon:{key}", r.get("prof") or "?", r["name"], product_id,
+            conn, f"addon:{profession_name(r.get('prof'))}|{r['name']}", profession_name(r.get("prof")), r["name"], product_id,
             names.get(product_id) if product_id else None,
             r.get("yieldMin") or 1, r.get("yieldMax") or r.get("yieldMin") or 1,
-            1 if r.get("learned") else 0, f"addon-{r.get('source') or 'window'}", _reagents(r.get("reagents")))
+            None if r.get("learned") is None else int(bool(r.get("learned"))),
+            f"addon-{r.get('source') or 'window'}", _reagents(r.get("reagents")))
         recipes += 1
 
     recipe_items = 0

@@ -112,35 +112,57 @@ local function readCrafts()
 end
 
 -- Profession window, modern API. Also lists recipes the character has not learned.
+local BASIC_REAGENT = Enum and Enum.CraftingReagentType and Enum.CraftingReagentType.Basic or 1
+
+local function itemName(itemID)
+  return GetItemInfo(itemID) or (C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(itemID))
+end
+
+-- Profession window on the WoW Forever client (checked with /sfe diag on build 1.60.1).
+-- Lists every recipe of the open profession, learned or not.
 local function readModern()
   local T = C_TradeSkillUI
   if not (T and T.GetAllRecipeIDs and T.GetRecipeSchematic and T.GetRecipeInfo) then return 0 end
-  local info = (T.GetChildProfessionInfo and T.GetChildProfessionInfo())
-    or (T.GetBaseProfessionInfo and T.GetBaseProfessionInfo())
-  local prof = (info and (info.parentProfessionName or info.professionName)) or "?"
-  local n = 0
+  local base = T.GetBaseProfessionInfo and T.GetBaseProfessionInfo()
+  local child = T.GetChildProfessionInfo and T.GetChildProfessionInfo()
+  local prof = (base and base.professionName ~= "" and base.professionName)
+    or (child and (child.parentProfessionName or child.professionName)) or "?"
+  -- A profession linked by another player or an NPC crafter says nothing about what you know.
+  local foreign = (T.IsTradeSkillLinked and T.IsTradeSkillLinked()) or (T.IsTradeSkillGuild and T.IsTradeSkillGuild())
+    or (T.IsNPCCrafting and T.IsNPCCrafting())
+  local n, failed = 0, 0
   for _, recipeID in ipairs(T.GetAllRecipeIDs() or {}) do
-    local ri = T.GetRecipeInfo(recipeID)
-    local sch = ri and T.GetRecipeSchematic(recipeID, false)
-    if sch then
+    local ok, err = pcall(function()
+      local ri = T.GetRecipeInfo(recipeID)
+      if not ri or ri.isDummyRecipe then return end
+      local sch = T.GetRecipeSchematic(recipeID, false)
+      if not sch then return end
       local reagents = {}
       for _, slot in ipairs(sch.reagentSlotSchematics or {}) do
         local r = slot.reagents and slot.reagents[1]
-        if r and r.itemID then
-          reagents[#reagents + 1] = {
-            id = r.itemID, name = GetItemInfo(r.itemID), count = slot.quantityRequired,
-          }
+        local basic = slot.reagentType == nil or slot.reagentType == BASIC_REAGENT
+        if r and r.itemID and basic and slot.required ~= false then
+          reagents[#reagents + 1] = { id = r.itemID, name = itemName(r.itemID), count = slot.quantityRequired }
         end
       end
+      local learned = ri.learned and true or false
+      if foreign then learned = nil end
+      local existing = db().recipes[prof .. "|" .. ri.name]
+      if foreign and existing then learned = existing.learned end
       storeRecipe({
-        prof = prof, name = ri.name, source = "window", learned = ri.learned and true or false,
+        prof = prof, name = ri.name, source = "window", learned = learned,
         itemID = sch.outputItemID, spellID = recipeID,
         yieldMin = sch.quantityMin or 1, yieldMax = sch.quantityMax or sch.quantityMin or 1,
         reagents = reagents,
       })
       n = n + 1
+    end)
+    if not ok then
+      failed = failed + 1
+      db().stats.lastError = "recipe " .. tostring(recipeID) .. ": " .. tostring(err)
     end
   end
+  db().stats.lastModern = { time = time(), prof = prof, recipes = n, failed = failed, foreign = foreign and true or false }
   return n
 end
 
@@ -148,7 +170,11 @@ local function readProfessionWindow()
   local total = 0
   for _, fn in ipairs({ readTradeSkills, readCrafts, readModern }) do
     local ok, n = pcall(fn)
-    if ok and type(n) == "number" then total = total + n end
+    if ok and type(n) == "number" then
+      total = total + n
+    elseif not ok then
+      db().stats.lastError = tostring(n)
+    end
   end
   db().stats.lastWindow = { time = time(), recipes = total }
   return total
@@ -177,8 +203,15 @@ end
 local function tooltipReagents(tip)
   for i = 1, tip:NumLines() do
     local line = _G[tip:GetName() .. "TextLeft" .. i]
-    local reagents = parseReagentLine(line and line:GetText())
+    local text = line and line:GetText()
+    local reagents = parseReagentLine(text)
     if reagents then return reagents end
+    -- Some clients put the list on the line after a bare "Reagents:" label.
+    if text and text:gsub("%s+$", "") == reagentPrefix then
+      local nextLine = _G[tip:GetName() .. "TextLeft" .. (i + 1)]
+      local body = nextLine and nextLine:GetText()
+      if body then return parseReagentLine(reagentPrefix .. " " .. body) end
+    end
   end
   return nil
 end
@@ -368,12 +401,14 @@ local function status()
 end
 
 local frame = CreateFrame("Frame")
-for _, event in ipairs({ "PLAYER_LOGIN", "TRADE_SKILL_SHOW", "TRADE_SKILL_UPDATE", "CRAFT_SHOW", "CRAFT_UPDATE",
-  "TRAINER_SHOW", "TRAINER_UPDATE", "MAIL_INBOX_UPDATE", "MERCHANT_SHOW" }) do
+for _, event in ipairs({ "PLAYER_LOGIN", "TRADE_SKILL_SHOW", "TRADE_SKILL_UPDATE", "TRADE_SKILL_LIST_UPDATE",
+  "TRADE_SKILL_DATA_SOURCE_CHANGED", "CRAFT_SHOW", "CRAFT_UPDATE", "TRAINER_SHOW", "TRAINER_UPDATE",
+  "MAIL_INBOX_UPDATE", "MERCHANT_SHOW" }) do
   pcall(frame.RegisterEvent, frame, event)
 end
 
 local pending = {}
+local announced = false
 local function later(name, fn)
   if pending[name] then return end
   pending[name] = true
@@ -400,9 +435,14 @@ frame:SetScript("OnEvent", function(_, event)
   elseif event == "MERCHANT_SHOW" then
     later("merchant", onMerchantShow)
   else
+    if event:find("SHOW") then announced = false end
     later("window", function()
       local n = readProfessionWindow()
-      if n > 0 and event:find("SHOW") then say(n .. " recipes saved. /reload to write them to disk.") end
+      -- The modern profession window fills in after it opens, so announce on the first update with data.
+      if n > 0 and not announced then
+        announced = true
+        say(n .. " recipes saved. /reload to write them to disk.")
+      end
     end)
   end
 end)

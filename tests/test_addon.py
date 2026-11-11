@@ -183,3 +183,64 @@ def test_merchant_prices_for_unlimited_stock(tmp_path):
     assert rep["merchant_prices"] == 2
     prices = dict(conn.execute("SELECT item_id, vendor_buy FROM items WHERE vendor_buy IS NOT NULL").fetchall())
     assert prices == {2320: 10, 4289: 10}
+
+
+FOREVER_MODERN = """
+items[2318] = { name = "Light Leather", vendor = 15 }
+C_TradeSkillUI = {
+  GetBaseProfessionInfo = function() return { professionName = "Leatherworking" } end,
+  GetChildProfessionInfo = function() return { professionName = "Classic Leatherworking", parentProfessionName = "Leatherworking" } end,
+  IsTradeSkillLinked = function() return linked end,
+  GetAllRecipeIDs = function() return { 1, 2, 3 } end,
+  GetRecipeInfo = function(id)
+    if id == 3 then error("broken recipe") end
+    return { name = id == 1 and "Light Armor Kit" or "Handstitched Leather Belt", learned = id == 1 }
+  end,
+  GetRecipeSchematic = function(id) return {
+    outputItemID = 2303 + id, quantityMin = 1, quantityMax = 1,
+    reagentSlotSchematics = {
+      { quantityRequired = 1, reagentType = 1, reagents = { { itemID = 2318 } } },
+      { quantityRequired = 1, reagentType = 0, required = false, reagents = { { itemID = 9999 } } },
+    } } end,
+}
+"""
+
+
+def test_forever_profession_window(tmp_path):
+    lua = run(FOREVER_MODERN, 'fire("TRADE_SKILL_SHOW"); fire("TRADE_SKILL_LIST_UPDATE")')
+    conn, rep = import_saved(lua, tmp_path)
+    rows = {r["name"]: r for r in conn.execute("SELECT * FROM recipes")}
+    assert set(rows) == {"Light Armor Kit", "Handstitched Leather Belt"}
+    assert rows["Light Armor Kit"]["profession"] == "Leatherworking"
+    assert rows["Light Armor Kit"]["learned"] == 1 and rows["Handstitched Leather Belt"]["learned"] == 0
+    reagents = conn.execute("SELECT item_id FROM recipe_reagents WHERE recipe_key = ?",
+                            (rows["Light Armor Kit"]["recipe_key"],)).fetchall()
+    assert [r[0] for r in reagents] == [2318]                       # the optional slot is left out
+    assert "broken recipe" in rep["last_error"]                    # one bad recipe does not stop the rest
+    printed = list(lua.eval("printed").values())
+    assert sum("recipes saved" in p for p in printed) == 1
+
+
+def test_linked_profession_does_not_claim_recipes(tmp_path):
+    lua = run("linked = true\n" + FOREVER_MODERN, 'fire("TRADE_SKILL_SHOW")')
+    conn, _ = import_saved(lua, tmp_path)
+    assert {r[0] for r in conn.execute("SELECT learned FROM recipes")} == {None}
+
+
+def test_trainer_reagents_on_the_next_line(tmp_path):
+    api = """
+    trainerTooltips = { [1] = { "Light Armor Kit", "Reagents:", "Light Leather (2)" } }
+    function GetNumTrainerServices() return 1 end
+    function GetTrainerServiceInfo(i) return "Light Armor Kit", "", "available" end
+    function GetTrainerServiceItemLink(i) return "|Hitem:2304::|h" end
+    function GetTrainerServiceSkillLine(i) return "Leatherworking" end
+    """
+    lua = run(api, 'fire("TRAINER_SHOW")')
+    conn, _ = import_saved(lua, tmp_path)
+    assert [tuple(r) for r in conn.execute("SELECT name, count FROM recipe_reagents")] == [("Light Leather", 2)]
+
+
+def test_profession_name_normalised():
+    assert addon_import.profession_name("Classic Leatherworking") == "Leatherworking"
+    assert addon_import.profession_name("first aid") == "First Aid"
+    assert addon_import.profession_name(None) == "?"
