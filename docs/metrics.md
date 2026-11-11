@@ -202,3 +202,41 @@ After each data update:
   At most five per update.
 
 Each alert fires at most once per item (or recipe) per day.
+
+## Advanced statistics (item page)
+
+Computed on demand for one item from its stored history (`simsar/analysis/econometrics.py`,
+using NumPy, SciPy, pandas and statsmodels). Each part says what data it still needs instead of
+showing a number built on too little.
+
+**Mean reversion.** An AR(1) model on the log of TSM's cheapest-listing series (one point per
+scan, about every 3 hours):
+
+```
+dy[t] = a + b * y[t-1] + e        phi = 1 + b
+half_life = ln(0.5) / ln(phi) * scan_interval        (only when 0 < phi < 1)
+equilibrium = exp(-a / b)
+```
+
+The augmented Dickey-Fuller test (`statsmodels.tsa.stattools.adfuller`) checks whether the series
+really pulls back to a level (p < 0.05: "strong", p < 0.15: "weak") or wanders like a random walk
+("none"). Needs 16 scans. A short half-life means cheap listings are bought up or the price
+recovers quickly, which makes flips safer; "none" means "it will come back" is not a safe bet.
+
+**Forecast.** Exponential smoothing with additive errors and a damped additive trend (ETS A,Ad,N,
+`statsmodels.tsa.exponential_smoothing.ets.ETSModel`) on the log of daily median prices (TSM
+minimum buyouts and Auctionator daily lows), missing days carried forward. Three days ahead with
+an 80% prediction interval. Needs 7 days. The damped trend stops a short run from being projected
+forever; the interval assumes the market keeps behaving as it has, which a patch or a new source of
+supply breaks.
+
+**Price elasticity of demand.** Ordinary least squares of `log(sold_per_day)` on `log(avg_sale)`
+across region snapshots, with a 90% confidence interval for the slope. Needs 10 days with some
+price movement. A slope of -2 means a 1% higher price goes with 2% fewer units sold. When the
+interval contains zero there is no clear link. This is a correlation, not a causal estimate: shifts
+in supply and demand move price and volume together, which can even make the slope positive.
+
+**Timing.** Every scan's price divided by that day's median, grouped by three-hour block of local
+time (and by weekday after 14 days). The block with the lowest median is the cheapest time to buy,
+the highest the best time to sell. The Kruskal-Wallis test (`scipy.stats.kruskal`) says whether
+the blocks differ by more than chance (p < 0.05). Needs 5 days.

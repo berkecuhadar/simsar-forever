@@ -5,10 +5,12 @@ combines TradeSkillMaster's public price files with your own Auctionator scans, 
 price history in SQLite, and answers practical questions in a web page on your own machine:
 
 - What sells, how fast, and for how much after the auction house cut and deposits?
-- Which of my gathered materials earn the most per day?
+- Which of my gathered materials earn the most per day, for every profession?
 - Which recipes are worth crafting, and is crafting better than selling the materials?
 - How long does a recipe take to pay for itself?
 - What is cheap right now, and is it cheap or just falling?
+- Does this price snap back, where is it heading, how sensitive are buyers to it, and when in the
+  day is it cheapest? (econometric statistics with statsmodels and SciPy)
 
 It is a decision-support tool. It reads data; it never touches the game, posts, buys or clicks
 anything, and it cannot promise a profit.
@@ -28,17 +30,22 @@ cd simsar
 .\start.bat
 ```
 
-The first run creates a virtual environment, installs the Python packages, builds the UI, copies
-`config.example.yaml` to `config.yaml` and opens the dashboard at <http://127.0.0.1:8765/>.
-After that, `start.bat` just starts it. Leave it running: it fetches new TSM data as it appears and
-picks up your Auctionator scans by itself, and price history only grows while it runs.
+The first run creates a virtual environment, installs the Python packages, builds the UI and opens
+the dashboard at <http://127.0.0.1:8765/> on its **setup page**:
 
-Then edit `config.yaml` and set your game folder:
+1. pick your region (US, EU, TW, KR), realm type (Normal, PvP, Roleplay, Roleplay PvP; TW and KR
+   have Normal and PvP) and faction. Simsar Forever checks that TSM publishes data for that
+   auction house;
+2. pick your game folder. Installs are found automatically from the Windows registry, the
+   Battle.net settings and the usual folders on every drive; you can also type a path. If the
+   folder has several accounts or Auctionator realms, choose one;
+3. tick your professions. They are shown first; every profession is analysed either way.
 
-```yaml
-wow:
-  game_dir: "D:/World of Warcraft/_forever_"
-```
+The choices are saved to `config.yaml` and can be changed any time under **Settings**. Each realm
+keeps its own database in `data/`, so switching realms never mixes price histories.
+
+After that, `start.bat` just starts the dashboard. Leave it running: it fetches new TSM data as it
+appears and picks up your Auctionator scans by itself, and price history only grows while it runs.
 
 ### Demo mode
 
@@ -58,7 +65,7 @@ cannot be mistaken for the real market.
 2. **Install SimsarExport** (once, and again after updating Simsar Forever):
 
    ```powershell
-   .venv\Scripts\simsar install-addon
+   .venv\Scripts\python -m simsar install-addon
    ```
 
    It records, into its own SavedVariables file:
@@ -76,12 +83,14 @@ cannot be mistaken for the real market.
 
 | Source | What | How often |
 |---|---|---|
-| TSM realm file `forever/eu/realm/normal-alliance` | cheapest listing, market value, historical | about every 3 hours |
-| TSM region file `forever/eu/region` | average sale price, sale rate, sales per day | about daily |
+| TSM auction house file `forever/<region>/realm/<realm>-<faction>` | cheapest listing, market value, historical | about every 3 hours |
+| TSM region file `forever/<region>/region` | average sale price, sale rate, sales per day | about daily |
 | `Auctionator.lua` | your scans: cheapest price, daily low/high, units on sale, your posts, vendor prices | when you scan and `/reload` |
 | `SimsarExport.lua` | recipes, invoices, deposits, vendor buy prices | when you `/reload` |
 
-TSM's files are public and need no key: <https://tradeskillmaster.com/public-data>.
+TSM's files are public and need no key: <https://tradeskillmaster.com/public-data>. They are
+rate limited, though: a burst of a few dozen requests gets HTTP 429 for a while. Simsar Forever
+checks at most twice an hour by default and backs off as the server asks.
 
 ## Configuration
 
@@ -89,7 +98,8 @@ Everything has a default; `config.example.yaml` documents each setting. The ones
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `tsm.realm` | `normal-alliance` | Set to `null` for region-only mode. |
+| `tsm.region`, `tsm.realm` | `eu`, `normal-alliance` | Set on the setup page. `realm: null` is region-only mode. |
+| `player.professions` | all | Shown first in the dashboard. |
 | `economy.realm_share` | 0.25 | Share of region-wide sales that happen on your realm. |
 | `economy.market_share` | 0.20 | Share of your realm's sales you expect to win. |
 | `economy.ah_cut` | 0.05 | Used until SimsarExport has measured the real cut. |
@@ -101,6 +111,8 @@ Everything has a default; `config.example.yaml` documents each setting. The ones
 add hand-written recipes; see `recipes.example.yaml` and [docs/architecture.md](docs/architecture.md).
 
 ## Command line
+
+`simsar-forever` and the shorter `simsar` are the same command (also `python -m simsar`).
 
 ```
 simsar serve           start the dashboard (what start.bat runs)
@@ -133,6 +145,10 @@ numbering matches its source code. Still unverified:
   launch-week prices, so cheapness is measured against the two-week market value by default.
 - **Early history.** Volatility and trend need several days of data and stay blank until then.
 - **Crafting** assumes you can sell at today's cheapest listing without moving the price.
+- **Profession groups** for professions other than the five first built for are matched by item
+  name and checked against the EU item list only; recipes reported by the addon fill the gaps.
+- **Advanced statistics** describe the past. Elasticity is a correlation, not a causal estimate,
+  and forecasts assume nothing changes in the game.
 
 ## Development
 
