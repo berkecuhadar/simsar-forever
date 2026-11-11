@@ -23,6 +23,8 @@ simsar/web/static/
 *.db-wal
 *.db-shm
 config.yaml
+recipes.yaml
+/groups.yaml
 *.log
 
 # Old prototype and planning notes, kept outside the repo

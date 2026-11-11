@@ -1,0 +1,20 @@
+# Hand-written recipes, used only for recipes the SimsarExport addon has not reported.
+# Copy this file to recipes.yaml (ignored by git) and edit it.
+#
+# Names must match the item names in TSM data exactly. Set verified: true once you have checked a
+# recipe in game; unverified recipes are labelled as such in the dashboard.
+
+recipes:
+  - profession: Leatherworking
+    name: Light Armor Kit
+    yield: 1
+    verified: false
+    reagents:
+      Light Leather: 1
+
+  - profession: Tailoring
+    name: Bolt of Linen Cloth
+    yield: 1
+    verified: false
+    reagents:
+      Linen Cloth: 2
