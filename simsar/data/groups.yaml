@@ -1,0 +1,114 @@
+# Profession groups. Forever adds new items and recipes, so items are matched by name pattern
+# (case-insensitive regular expressions) rather than by id. Products and reagents of known recipes
+# join their profession's group automatically.
+#
+# To change a group, copy this file to groups.yaml next to config.yaml. Groups there replace the
+# ones here with the same key; add `ids: [...]` to pin items by id.
+
+groups:
+  skinning:
+    title: Skinning
+    profession: Skinning
+    role: gather
+    color: "#c58a4b"
+    patterns:
+      - "Leather$"
+      - "Leather Scraps$"
+      - "(?<!Cured )\\b\\w+ Hide$"
+      - "Scales?$"
+      - "Pelt$"
+      - "^Pristine (Hide|Leather)$"
+    exclude:
+      - "^Cured "
+      - "Fish Scales$"
+      - "Murloc Scale$"
+      - "^Enchanted Leather$"
+
+  fishing:
+    title: Fishing
+    profession: Fishing
+    role: gather
+    color: "#3b82f6"
+    patterns:
+      - "^Raw (?!Black Truffle)"
+      - "^Oily Blackmouth$"
+      - "^Firefin Snapper$"
+      - "^Stonescale Eel$"
+      - "^Deviate Fish$"
+      - "^Lightning Eel$"
+      - "^Shiny Fish Scales$"
+      - "^Fish Oil$"
+      - "Trunk$"
+      - "Battered Chest$"
+      - "Bound Chest$"
+      - "Lockbox$"
+
+  leatherworking:
+    title: Leatherworking
+    profession: Leatherworking
+    role: craft
+    color: "#a0522d"
+    patterns:
+      - "Armor Kit$"
+      - "^Cured "
+      - "Salt$"
+      - "Leather Reagent Bag$"
+      - "Ammo Pouch$"
+      - "Quiver$"
+    exclude:
+      - "^Craftsman's Writ: "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "
+      - "Ham Steak$"
+
+  tailoring:
+    title: Tailoring
+    profession: Tailoring
+    role: craft
+    color: "#7b68ee"
+    patterns:
+      - "\\bCloth$"
+      - "^Runecloth$"
+      - "^Felcloth$"
+      - "^Mooncloth$"
+      - "Thread$"
+      - "^Bolt of "
+      - "Dye$"
+      - "Spider's Silk$"
+      - "(?<!Leather )Reagent Bag$"
+      - "(Linen|Woolen|Silk|Mageweave|Runecloth) Bag$"
+    exclude:
+      - "^Craftsman's Writ: "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "
+      - "Loincloth$"
+      - "^Dirty Trogg Cloth$"
+      - "^Sage's Cloth$"
+
+  enchanting:
+    title: Enchanting
+    profession: Enchanting
+    role: craft
+    color: "#2eb8b8"
+    patterns:
+      - "(?<!Un'Goro )\\bDust$"
+      - "Essence$"
+      - "Shard$"
+      - "^Nexus Crystal$"
+      - "^(Copper|Silver|Golden|Truesilver|Arcanite) Rod$"
+      - "^Runed \\w+ Rod$"
+      - "Magic Wand$"
+      - "(Wizard|Mana) Oil$"
+      - "^Enchanted (Leather|Thorium Bar)$"
+    exclude:
+      - "^Craftsman's Writ: "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "
+      - "^Blood Shard$"
+      - "^Dust of Decay$"
+
+  recipes:
+    title: Recipes
+    profession: Recipes
+    role: recipe
+    color: "#d4a017"
+    # Only the recipe kinds these professions use.
+    patterns:
+      - "^(Pattern|Formula): "

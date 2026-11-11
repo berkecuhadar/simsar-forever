@@ -16,7 +16,7 @@ frontend/dist/
 simsar/web/static/
 
 # Local data and config
-data/
+/data/
 *.db
 *.db-journal
 *.db-wal
