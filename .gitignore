@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+build/
+dist/
+
+# Frontend
+node_modules/
+frontend/dist/
+simsar/web/static/
+
+# Local data and config
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+config.yaml
+*.log
+
+# Old prototype and planning notes, kept outside the repo
+forever_market/
+dolist.md
+
+# Editors, tools, OS
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
