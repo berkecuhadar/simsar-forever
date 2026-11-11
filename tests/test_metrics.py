@@ -86,7 +86,7 @@ def test_market_row_hand_computed():
     assert it["disc_hist"] == pytest.approx(1000 / 1100 - 1)
     assert it["reference"] == 1200 and it["disc_ref"] == pytest.approx(1000 / 1200 - 1)
     assert it["label"] == "fast_thin"                   # 5/day is fast, 7.75% < 15% margin
-    assert "not_live" in it["flags"]
+    assert "not_live" not in it["flags"]                # TSM scan is an hour old
 
 
 def test_market_flags():
@@ -102,6 +102,13 @@ def test_live_auctionator_price_wins():
     [it] = market.build(conn, cfg(), FEES, now=NOW)
     assert (it["price_now"], it["price_src"]) == (900, "auctionator")
     assert "not_live" not in it["flags"]
+
+
+def test_newer_tsm_scan_beats_older_auctionator_scan():
+    conn = _db_with_item()
+    conn.execute("INSERT INTO ato_current VALUES(1, 900, ?)", (NOW - 2 * 86400,))
+    [it] = market.build(conn, cfg(), FEES, now=NOW)
+    assert (it["price_now"], it["price_src"]) == (1000, "tsm_min_buyout")
 
 
 def test_volatility_needs_enough_points():
@@ -189,10 +196,22 @@ def test_money_format():
 def test_cheap_flag_and_alert():
     from simsar.analysis import alerts
     c = cfg()
-    items = market.build(_db_with_item(market=2000, min_buyout=1000), c, FEES, now=NOW)
+    conn = _db_with_item(market=2000, min_buyout=1000)
+    items = market.build(conn, c, FEES, now=NOW)
     assert "cheap" in items[0]["flags"] and "possible_misprice" not in items[0]["flags"]
+    assert alerts.generate(items, [], c, now=NOW) == []     # no history yet: could be a falling market
+
+    for d in range(1, 5):
+        conn.execute("INSERT INTO tsm_realm VALUES(1, ?, 2000, 1000, 2000, 1100)", (NOW - d * 86400,))
+    items = market.build(conn, c, FEES, now=NOW)
     [alert] = alerts.generate(items, [], c, now=NOW)
     assert alert["kind"] == "cheap" and "50% below" in alert["message"]
+
+    for d in range(1, 5):
+        conn.execute("UPDATE tsm_realm SET min_buyout = ? WHERE updated_at = ?", (1000 * 1.1 ** d, NOW - d * 86400))
+    items = market.build(conn, c, FEES, now=NOW)
+    assert items[0]["trend"] < -0.05
+    assert alerts.generate(items, [], c, now=NOW) == []     # sliding price, not a bargain
     c["analysis"]["reference_price"] = "historical"
     [it] = market.build(_db_with_item(market=2000, min_buyout=1000, historical=1100), c, FEES, now=NOW)
     assert it["reference"] == 1100

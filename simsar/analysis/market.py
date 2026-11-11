@@ -108,16 +108,19 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
         vendor = (info.get(item_id) or {}).get("vendor_sell")
         flags = []
 
-        live = at is not None and at["price"] and now - at["seen_ts"] <= a["live_price_hours"] * 3600
-        if live:
-            price_now, price_src, price_ts = at["price"], "auctionator", at["seen_ts"]
-        elif _positive(r.get("min_buyout")):
-            price_now, price_src, price_ts = r["min_buyout"], "tsm_min_buyout", r["updated_at"]
-            flags.append("not_live")
+        # The cheapest listing comes from whichever scan is newer: yours or TSM's.
+        listings = []
+        if at is not None and at["price"] and now - at["seen_ts"] <= a["live_price_hours"] * 3600:
+            listings.append((at["seen_ts"], at["price"], "auctionator"))
+        if _positive(r.get("min_buyout")):
+            listings.append((r["updated_at"], r["min_buyout"], "tsm_min_buyout"))
+        if listings:
+            price_ts, price_now, price_src = max(listings)
         else:
             price_now = _positive(r.get("market"), g.get("market"))
             price_src = "tsm_market" if price_now else None
             price_ts = r.get("updated_at") or g.get("updated_at")
+        if price_src != "auctionator" and (price_src != "tsm_min_buyout" or now - price_ts > a["stale_hours"] * 3600):
             flags.append("not_live")
 
         market = _positive(r.get("market"), g.get("market"))
