@@ -86,9 +86,14 @@ def build(cfg, conn, result, now=None):
         if have != want:
             warn("warn", f"The installed SimsarExport addon is version {have}, this Simsar ships {want}. "
                          "Run: simsar install-addon")
+    installed = bool(installed_dir and (installed_dir / "SimsarExport.toc").exists())
     if not demo and cfg["wow"].get("game_dir") and not has_addon_file:
-        warn("info", "Install the SimsarExport addon (run: simsar install-addon) to import your recipes, "
-                     "vendor prices and the real AH cut and deposits.")
+        if installed:
+            warn("info", "SimsarExport is installed but has not written any data yet. Log in, open your "
+                         "profession windows, then /reload.")
+        else:
+            warn("info", "Install the SimsarExport addon (run: simsar install-addon) to import your recipes, "
+                         "vendor prices and the real AH cut and deposits.")
 
     fees = result["fees"]
     if fees.cut_source == "config" and not demo:
