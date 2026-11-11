@@ -20,7 +20,7 @@ FLAGS = {
     "no_volume": "No recorded sales in the region",
     "thin_volume": "Sells less than once a day on your realm",
     "bubble": "Market value far above its long-term average",
-    "below_historical": "Price well below its long-term average",
+    "cheap": "Cheapest listing well below the reference price",
     "possible_misprice": "Cheapest listing is far below market value; may be a mistake or bait",
     "not_live": "No recent scan price; using TSM data",
     "low_confidence": "Too few price points for volatility",
@@ -122,6 +122,7 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
 
         market = _positive(r.get("market"), g.get("market"))
         historical = _positive(r.get("historical"), g.get("historical"))
+        reference = historical if a["reference_price"] == "historical" else market
         avg_sale = _positive(g.get("avg_sale"))
         if eco["sell_price"] == "market":
             sell_ref = market
@@ -148,6 +149,7 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
 
         h = history_stats(history.get(item_id), now, cfg)
         pctile = stats.percentile_rank(h.pop("_prices", None), price_now)
+        disc_ref = price_now / reference - 1 if price_now and reference else None
         disc_hist = price_now / historical - 1 if price_now and historical else None
         bubble_ratio = market / historical if market and historical else None
 
@@ -161,8 +163,8 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
             flags.append("thin_volume")
         if bubble_ratio and bubble_ratio > a["bubble_ratio"]:
             flags.append("bubble")
-        if disc_hist is not None and disc_hist < -cfg["alerts"]["below_historical"]:
-            flags.append("below_historical")
+        if disc_ref is not None and disc_ref < -cfg["alerts"]["cheap_below"]:
+            flags.append("cheap")
         if price_now and market and price_now < 0.4 * market:
             flags.append("possible_misprice")
         if h and h.get("volatility") is None:
@@ -174,7 +176,7 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
             confidence *= 0.5
         if sale_rate is None:
             confidence *= 0.7
-        bubble_penalty = 1 / (1 + max(0.0, disc_hist or 0.0))
+        bubble_penalty = 1 / (1 + max(0.0, disc_ref or 0.0))
         score = flip_profit_day * confidence * bubble_penalty if flip_profit_day is not None else None
 
         if flip_margin is None or my_spd is None:
@@ -220,6 +222,8 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
             **dict.fromkeys(HISTORY_KEYS),
             **h,
             "pctile": pctile,
+            "reference": reference,
+            "disc_ref": disc_ref,
             "disc_hist": disc_hist,
             "bubble_ratio": bubble_ratio,
             "confidence": confidence,

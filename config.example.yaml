@@ -38,10 +38,14 @@ analysis:
   bubble_ratio: 1.6            # market value this many times above historical is flagged as a bubble
   stale_hours: 12              # TSM data older than this is flagged as stale
   live_price_hours: 72         # Auctionator prices older than this are not used as "price now"
+  # What "cheap" and "expensive" are measured against. market = TSM market value (last ~14 days),
+  # historical = TSM historical (~60 days). On a new server the 60-day figure still contains
+  # launch-week prices, which will not come back, so market is the safer default.
+  reference_price: market
 
 alerts:
   enabled: true
-  below_historical: 0.25       # alert when a tracked item is this far below its historical price
+  cheap_below: 0.25            # alert when a tracked item is this far below its reference price
   min_craft_profit_gold: 5     # alert when a craft makes at least this much per craft
   min_sales_per_day: 1         # ignore alerts on items that barely sell
 

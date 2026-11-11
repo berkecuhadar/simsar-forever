@@ -12,16 +12,16 @@ def generate(items, crafts, cfg, now=None):
     day = int((now or time.time()) // 86400)
     out = []
     for it in items:
-        if not it["groups"] or "below_historical" not in it["flags"]:
+        if not it["groups"] or "cheap" not in it["flags"] or "possible_misprice" in it["flags"]:
             continue
         fresh = it["price_src"] == "auctionator" or (it["price_age_h"] or 99) <= cfg["analysis"]["stale_hours"]
         if not fresh or (it["my_sales_per_day"] or 0) < a["min_sales_per_day"]:
             continue
         out.append({
-            "kind": "below_historical", "item_id": it["item_id"],
-            "dedupe_key": f"below:{it['item_id']}:{day}",
+            "kind": "cheap", "item_id": it["item_id"],
+            "dedupe_key": f"cheap:{it['item_id']}:{day}",
             "title": f"{it['name']} is cheap",
-            "message": f"{fmt(it['price_now'])}, {abs(it['disc_hist']):.0%} below its average of {fmt(it['historical'])}.",
+            "message": f"{fmt(it['price_now'])}, {abs(it['disc_ref']):.0%} below its usual {fmt(it['reference'])}.",
         })
     min_profit = a["min_craft_profit_gold"] * 10000
     for c in crafts:

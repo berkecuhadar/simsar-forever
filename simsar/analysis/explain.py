@@ -10,23 +10,29 @@ def _pct(x):
 
 def item(it, fees, cfg):
     s = []
-    pn, hist, spd = it.get("price_now"), it.get("historical"), it.get("my_sales_per_day")
+    pn, ref, spd = it.get("price_now"), it.get("reference"), it.get("my_sales_per_day")
+    ref_name = ("its long-term (60 day) average" if cfg["analysis"]["reference_price"] == "historical"
+                else "its usual price over the last two weeks")
     src = {"auctionator": "your Auctionator scan", "tsm_min_buyout": "TSM's latest scan",
            "tsm_market": "TSM market value (no listing seen)"}.get(it.get("price_src"), "unknown source")
     if pn:
         s.append(f"The cheapest listing is {fmt(pn)}, from {src}.")
 
-    d = it.get("disc_hist")
+    d = it.get("disc_ref")
     if d is not None:
         if d < -0.15:
-            s.append(f"That is {_pct(d)} below its long-term average of {fmt(hist)}. Prices tend to drift back "
-                     "toward their average, so this can be a buying chance, but check why it is cheap "
-                     "(a flood of supply, a patch, a new source).")
+            s.append(f"That is {_pct(d)} below {ref_name} ({fmt(ref)}). Prices tend to drift back toward their "
+                     "usual level, so this can be a buying chance, but check why it is cheap "
+                     "(a flood of supply, a single odd listing, a new source).")
         elif d > 0.20:
-            s.append(f"That is {_pct(d)} above its long-term average of {fmt(hist)}. Buying at a high is risky; "
+            s.append(f"That is {_pct(d)} above {ref_name} ({fmt(ref)}). Buying at a high is risky; "
                      "if you hold some, it may be a good time to sell.")
         else:
-            s.append(f"It is close to its long-term average of {fmt(hist)}.")
+            s.append(f"It is close to {ref_name} ({fmt(ref)}).")
+    hd = it.get("disc_hist")
+    if hd is not None and cfg["analysis"]["reference_price"] != "historical" and hd < -0.4:
+        s.append(f"TSM's 60-day average is much higher ({fmt(it.get('historical'))}). On a new server that "
+                 "average still includes launch-week prices, which rarely come back.")
 
     region = it.get("sold_per_day_region")
     if region is None or region == 0:

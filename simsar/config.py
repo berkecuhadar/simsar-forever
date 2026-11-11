@@ -36,10 +36,11 @@ DEFAULTS = {
         "bubble_ratio": 1.6,
         "stale_hours": 12,
         "live_price_hours": 72,
+        "reference_price": "market",
     },
     "alerts": {
         "enabled": True,
-        "below_historical": 0.25,
+        "cheap_below": 0.25,
         "min_craft_profit_gold": 5,
         "min_sales_per_day": 1,
     },
@@ -98,6 +99,8 @@ def validate(cfg):
         raise ConfigError("economy.auction_hours must be 2, 8 or 24")
     if eco["sell_price"] not in ("avg_sale", "market"):
         raise ConfigError("economy.sell_price must be 'avg_sale' or 'market'")
+    if cfg["analysis"]["reference_price"] not in ("market", "historical"):
+        raise ConfigError("analysis.reference_price must be 'market' or 'historical'")
     if cfg["server"]["host"] not in ("127.0.0.1", "localhost", "::1"):
         raise ConfigError("server.host must be a loopback address; Simsar is not meant to be exposed")
 

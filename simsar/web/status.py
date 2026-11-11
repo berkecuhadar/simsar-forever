@@ -102,7 +102,7 @@ def build(cfg, conn, result, now=None):
             "sell_price": eco["sell_price"], "history_days": cfg["analysis"]["history_days"],
             "good_margin": cfg["analysis"]["good_margin"],
             "fast_sales_per_day": cfg["analysis"]["fast_sales_per_day"],
-            "stale_hours": stale_h, "tsm": f"{cfg['tsm']['game_type']}/{cfg['tsm']['region']}/{cfg['tsm']['realm']}",
+            "stale_hours": stale_h, "reference_price": cfg["analysis"]["reference_price"], "tsm": f"{cfg['tsm']['game_type']}/{cfg['tsm']['region']}/{cfg['tsm']['realm']}",
         },
         "alerts_unseen": conn.execute("SELECT COUNT(*) FROM alerts WHERE seen = 0").fetchone()[0],
         "items": len(result["items"]),

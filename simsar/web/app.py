@@ -23,7 +23,7 @@ ITEM_LIST_FIELDS = (
     "item_id", "name", "groups", "group", "price_now", "price_src", "market", "historical", "sell_price",
     "sell_ref", "net_sell", "sale_rate", "sold_per_day_region", "my_sales_per_day", "available",
     "turnover_day", "income_day", "flip_profit", "flip_margin", "flip_profit_day", "volatility", "trend",
-    "disc_hist", "period_min", "period_max", "n_points", "confidence", "score", "label", "flags",
+    "reference", "disc_ref", "disc_hist", "period_min", "period_max", "n_points", "confidence", "score", "label", "flags",
     "deposit", "vendor_sell", "data_age_h",
 )
 

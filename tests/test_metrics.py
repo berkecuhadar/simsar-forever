@@ -84,6 +84,7 @@ def test_market_row_hand_computed():
     assert it["income_day"] == pytest.approx(4675)      # 935 * 5
     assert it["turnover_day"] == pytest.approx(28750)   # 25 * 1150
     assert it["disc_hist"] == pytest.approx(1000 / 1100 - 1)
+    assert it["reference"] == 1200 and it["disc_ref"] == pytest.approx(1000 / 1200 - 1)
     assert it["label"] == "fast_thin"                   # 5/day is fast, 7.75% < 15% margin
     assert "not_live" in it["flags"]
 
@@ -183,3 +184,15 @@ def test_money_format():
     assert fmt(10005) == "1g 0s 5c"
     assert fmt(-250) == "-2s 50c"
     assert fmt(0) == "0c"
+
+
+def test_cheap_flag_and_alert():
+    from simsar.analysis import alerts
+    c = cfg()
+    items = market.build(_db_with_item(market=2000, min_buyout=1000), c, FEES, now=NOW)
+    assert "cheap" in items[0]["flags"] and "possible_misprice" not in items[0]["flags"]
+    [alert] = alerts.generate(items, [], c, now=NOW)
+    assert alert["kind"] == "cheap" and "50% below" in alert["message"]
+    c["analysis"]["reference_price"] = "historical"
+    [it] = market.build(_db_with_item(market=2000, min_buyout=1000, historical=1100), c, FEES, now=NOW)
+    assert it["reference"] == 1100
