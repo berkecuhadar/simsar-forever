@@ -11,6 +11,8 @@ class Fees:
     max_relists: float
     cut_source: str = "config"
     deposit_source: str = "config"
+    min_deposit: float = 0          # copper per listing
+    listing_size: float = 1         # units in a typical listing
 
 
 def from_config(cfg, measured=None):
@@ -19,18 +21,33 @@ def from_config(cfg, measured=None):
     cut, cut_src = eco["ah_cut"], "config"
     if measured.get("ah_cut") is not None:
         cut, cut_src = measured["ah_cut"], f"measured ({measured['ah_cut_samples']} sales)"
-    rate, rate_src = eco["deposit_rate"], "config"
-    m = (measured.get("deposit_rates") or {}).get(eco["auction_hours"])
+    hours = eco["auction_hours"]
+    rate, floor, rate_src = eco["deposit_rate"], eco["min_deposit"], "config"
+    by_hours = measured.get("deposit_rates") or {}
+    m = by_hours.get(hours)
+    if not m and by_hours:
+        # Use the duration you actually post with when the configured one has no measurements.
+        hours, m = max(by_hours.items(), key=lambda kv: kv[1]["samples"])
     if m:
-        rate, rate_src = m["rate"], f"measured ({m['samples']} posts)"
-    return Fees(cut, rate, eco["auction_hours"], eco["max_relists"], cut_src, rate_src)
+        parts = []
+        if m.get("rate") is not None:
+            rate = m["rate"]
+            parts.append("rate")
+        if m.get("min_deposit") is not None:
+            floor = m["min_deposit"]
+            parts.append("minimum")
+        if parts:
+            rate_src = f"measured {' and '.join(parts)} from {m['samples']} posts of {hours}h"
+    return Fees(cut, rate, hours, eco["max_relists"], cut_src, rate_src, floor, eco["listing_size"])
 
 
 def deposit(vendor_sell, fees):
-    """Deposit for listing one unit. Unknown vendor price -> None."""
+    """Deposit for listing one unit: the larger of the rate on the vendor price and this unit's share
+    of the per-listing minimum. None when neither is known."""
+    share = fees.min_deposit / max(fees.listing_size, 1)
     if vendor_sell is None:
-        return None
-    return vendor_sell * fees.deposit_rate
+        return share or None
+    return max(vendor_sell * fees.deposit_rate, share)
 
 
 def listings_per_sale(sale_rate, fees):

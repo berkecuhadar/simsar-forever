@@ -224,3 +224,23 @@ def test_vendor_reagent_is_used_when_cheaper():
     thread = row["reagents"][1]
     assert (thread["unit_price"], thread["price_src"]) == (10, "vendor")
     assert row["cost_buy"] == 210
+
+
+def test_deposit_floor_from_real_forever_posts():
+    from simsar_forever.addon_import import deposit_model
+    # Three posts seen on WoW Forever (November 2026): 8h, vendor price 6c, different quantities.
+    real = [{"deposit": 100, "quantity": 3, "vendor": 6}, {"deposit": 100, "quantity": 5, "vendor": 6},
+            {"deposit": 100, "quantity": 4, "vendor": 6}]
+    assert deposit_model(real) == {"rate": None, "min_deposit": 100, "samples": 3}
+    more = real + [{"deposit": 3000, "quantity": 1, "vendor": 10000}]
+    assert deposit_model(more)["rate"] == pytest.approx(0.3)
+
+
+def test_fees_use_the_posted_duration_and_floor():
+    c = cfg(auction_hours=24, deposit_rate=0.15, min_deposit=0, listing_size=10)
+    f = fees.from_config(c, {"deposit_rates": {8: {"rate": None, "min_deposit": 100, "samples": 3}}})
+    assert (f.auction_hours, f.min_deposit, f.deposit_rate) == (8, 100, 0.15)
+    assert "minimum" in f.deposit_source
+    assert fees.deposit(6, f) == 10                     # 1 silver spread over 10 units beats 15% of 6c
+    assert fees.deposit(10000, f) == 1500               # expensive items: the rate dominates
+    assert fees.deposit(None, f) == 10

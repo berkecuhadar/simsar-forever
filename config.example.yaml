@@ -31,6 +31,8 @@ economy:
   # Fallbacks. Measured values from the SimsarForeverExport addon replace these once available.
   ah_cut: 0.05                 # share of the sale price the auction house keeps (unverified for Forever)
   deposit_rate: 0.15           # deposit as a share of vendor sell price for one listing (unverified)
+  min_deposit: 100             # smallest deposit per listing in copper; 1 silver seen on Forever
+  listing_size: 10             # units you usually put in one listing (spreads the minimum deposit)
   auction_hours: 24            # listing duration you normally use: 2, 8 or 24
   # TSM sales volume is region-wide. These turn it into "what you can expect to sell".
   realm_share: 0.25            # share of region sales that happen on your realm (unverified guess)

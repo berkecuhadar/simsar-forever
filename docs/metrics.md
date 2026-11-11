@@ -45,9 +45,20 @@ cheaper than the reference.
 
 ## Fees
 
-**Deposit per listing**: `vendor_sell * deposit_rate`. Refunded when the item sells, lost when the
-listing expires or is cancelled. Unknown vendor price means the deposit is left out and the item
-is flagged `no_vendor_price`.
+**Deposit per unit**:
+
+```
+deposit = max(vendor_sell * deposit_rate, min_deposit / listing_size)
+```
+
+Refunded when the item sells, lost when the listing expires or is cancelled. On WoW Forever a
+listing costs at least 1 silver whatever its size: three posts of 3 to 5 units with a 6 copper
+vendor price each cost exactly 100 copper (November 2026). `min_deposit` is that floor per listing
+and `listing_size` the number of units you usually put in one listing, which spreads the floor.
+SimsarForeverExport measures both the floor (several identical smallest deposits for different
+quantities) and the rate (posts above the floor). Measurements for the duration you actually post
+with replace `economy.auction_hours`. With no vendor price only the floor share is counted, and
+the item is flagged `no_vendor_price` when even that is zero.
 
 **Listings per sale**: `min(1 / sale_rate, economy.max_relists)`. A 25% sale rate means one listing
 in four sells, so four listings per sale. A missing or zero sale rate uses the cap.

@@ -147,20 +147,34 @@ def import_file(conn, path):
     }
 
 
+def deposit_model(rows):
+    """Fit deposit = max(floor, rate * vendor_price * quantity) to observed posts.
+
+    On WoW Forever cheap items cost a flat 1 silver per listing whatever the quantity (seen in
+    November 2026), so several identical smallest deposits are read as a floor and only posts above
+    it are used for the rate."""
+    deposits = [r["deposit"] for r in rows]
+    low = min(deposits)
+    at_floor = [r for r in rows if r["deposit"] == low]
+    floor = low if len(at_floor) >= 2 and len({(r["vendor"], r["quantity"]) for r in at_floor}) >= 2 else None
+    above = [r for r in rows if floor is None or r["deposit"] > floor]
+    ratios = [r["deposit"] / (r["vendor"] * r["quantity"]) for r in above if r["vendor"] and r["quantity"]]
+    return {"rate": statistics.median(ratios) if ratios else None, "min_deposit": floor,
+            "samples": len(rows)}
+
+
 def measured_fees(conn):
     """AH cut and deposit rates observed in game. Values are None until there is data."""
     cuts = [r["consignment"] / r["bid"] for r in conn.execute(
         "SELECT bid, consignment FROM ah_invoices WHERE bid > 0 AND consignment IS NOT NULL")]
     rates = {}
     for hours in DURATIONS:
-        samples = []
-        for r in conn.execute(
-                "SELECT d.deposit, d.quantity, COALESCE(d.vendor_sell, i.vendor_sell) AS vendor "
-                "FROM ah_deposits d LEFT JOIN items i ON i.item_id = d.item_id WHERE d.hours = ?", (hours,)):
-            if r["vendor"] and r["quantity"]:
-                samples.append(r["deposit"] / (r["vendor"] * r["quantity"]))
-        if samples:
-            rates[hours] = {"rate": statistics.median(samples), "samples": len(samples)}
+        rows = [r for r in conn.execute(
+            "SELECT d.deposit, d.quantity, COALESCE(d.vendor_sell, i.vendor_sell) AS vendor "
+            "FROM ah_deposits d LEFT JOIN items i ON i.item_id = d.item_id WHERE d.hours = ?", (hours,))
+            if r["deposit"] is not None]
+        if rows:
+            rates[hours] = deposit_model(rows)
     return {
         "ah_cut": round(statistics.median(cuts), 4) if cuts else None,
         "ah_cut_samples": len(cuts),
