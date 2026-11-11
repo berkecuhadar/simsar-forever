@@ -267,3 +267,13 @@ def test_empty_profession_name_is_skipped_in_game(tmp_path):
               'fire("TRADE_SKILL_SHOW")')
     conn, rep = import_saved(lua, tmp_path)
     assert rep["recipes"] == 0
+
+
+def test_login_drops_recipes_without_a_profession(tmp_path):
+    lua = lupa.LuaRuntime()
+    lua.execute(STUB)
+    lua.execute('SimsarForeverExportDB = { recipes = { ["|Kit"] = { name = "Kit" }, '
+                '["Leatherworking|Kit"] = { prof = "Leatherworking", name = "Kit" } } }')
+    lua.execute(ADDON)
+    lua.execute('fire("PLAYER_LOGIN")')
+    assert list(lua.eval("SimsarForeverExportDB.recipes").keys()) == ["Leatherworking|Kit"]

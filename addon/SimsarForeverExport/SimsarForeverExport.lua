@@ -425,6 +425,10 @@ end
 
 frame:SetScript("OnEvent", function(_, event)
   if event == "PLAYER_LOGIN" then
+    -- Early builds saved some recipes without a profession name ("|<recipe>"); drop them.
+    for key in pairs(db().recipes) do
+      if key:sub(1, 1) == "|" then db().recipes[key] = nil end
+    end
     db().build = select(4, GetBuildInfo())
     db().realm = GetRealmName()
     db().faction = UnitFactionGroup("player")
