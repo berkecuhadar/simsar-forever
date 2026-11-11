@@ -13,6 +13,7 @@ dist/
 # Frontend
 node_modules/
 frontend/dist/
+*.tsbuildinfo
 simsar/web/static/
 
 # Local data and config
