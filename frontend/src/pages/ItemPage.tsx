@@ -37,11 +37,11 @@ export default function ItemPage() {
       dataZoom: [{ type: "inside" }, { type: "slider", height: 18, bottom: 6, borderColor: THEME.grid, textStyle: { color: THEME.muted } }],
       grid: { ...baseOption.grid, bottom: 60, left: 80 },
       series: [
-        { name: "Cheapest listing (TSM)", type: "line", showSymbol: false, step: "end", lineStyle: { width: 1.5 },
+        { name: "Cheapest listing (TSM)", type: "line", showSymbol: h.realm.length < 40, step: "end", lineStyle: { width: 1.5 },
           color: THEME.blue, data: h.realm.filter((r) => r.min_buyout).map((r) => [ms(r.t), r.min_buyout]) },
-        { name: "Market value", type: "line", showSymbol: false, smooth: true, color: THEME.gold,
+        { name: "Market value", type: "line", showSymbol: h.realm.length < 40, smooth: true, color: THEME.gold,
           data: h.realm.filter((r) => r.market).map((r) => [ms(r.t), r.market]) },
-        { name: "Historical", type: "line", showSymbol: false, color: THEME.muted, lineStyle: { type: "dashed" },
+        { name: "Historical", type: "line", showSymbol: h.realm.length < 40, color: THEME.muted, lineStyle: { type: "dashed" },
           data: h.realm.filter((r) => r.historical).map((r) => [ms(r.t), r.historical]) },
         { name: "Auctionator daily low", type: "line", symbolSize: 6, color: THEME.green,
           data: h.auctionator.map((r) => [ms(r.t + 43200), r.low]) },
@@ -59,6 +59,7 @@ export default function ItemPage() {
     return {
       ...baseOption,
       legend: { ...baseOption.legend, data: ["Sold per day (region)", "Units on AH (your scans)"] },
+      grid: { ...baseOption.grid, left: 70, right: 70 },
       xAxis: { type: "time", ...axisStyle({ splitLine: { show: false } }) },
       yAxis: [
         { type: "value", name: "sold/day", ...axisStyle() },
@@ -66,7 +67,7 @@ export default function ItemPage() {
       ],
       series: [
         { name: "Sold per day (region)", type: "line", step: "end", areaStyle: { opacity: 0.15 }, color: THEME.teal,
-          showSymbol: false, data: h.region.filter((r) => r.sold_per_day !== null).map((r) => [r.t * 1000, r.sold_per_day]) },
+          showSymbol: h.region.length < 40, data: h.region.filter((r) => r.sold_per_day !== null).map((r) => [r.t * 1000, r.sold_per_day]) },
         { name: "Units on AH (your scans)", type: "bar", yAxisIndex: 1, color: THEME.violet, barMaxWidth: 18,
           data: h.auctionator.filter((r) => r.available !== null).map((r) => [(r.t + 43200) * 1000, r.available]) },
       ],
