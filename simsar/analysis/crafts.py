@@ -87,10 +87,11 @@ def analyse(recipes, items, fees, profession=None):
         for x in r["reagents"]:
             it = _resolve(x["item_id"], x["name"], by_id, by_name)
             name = (it or {}).get("name") or x["name"] or f"Item {x['item_id']}"
-            buy = it and it.get("price_now")
+            buy, buy_src = _buy_price(it)
             sell = it and it.get("net_sell")
             reagents.append({"item_id": (it or {}).get("item_id") or x["item_id"], "name": name,
-                             "count": x["count"], "unit_price": buy, "unit_net_sell": sell})
+                             "count": x["count"], "unit_price": buy, "price_src": buy_src,
+                             "unit_net_sell": sell})
             if not buy:
                 missing.append(name)
                 continue
@@ -136,6 +137,16 @@ def analyse(recipes, items, fees, profession=None):
         rows.append(row)
     rows.sort(key=lambda x: (x["profit_day"] is None, -(x["profit_day"] or 0), -(x["profit"] or float("-inf"))))
     return rows
+
+
+def _buy_price(it):
+    """Cheapest way to get one unit: the auction house or a vendor."""
+    if not it:
+        return None, None
+    ah, vendor = it.get("price_now"), it.get("vendor_buy")
+    if vendor and (not ah or vendor <= ah):
+        return vendor, "vendor"
+    return (ah, "auction") if ah else (None, None)
 
 
 def _recipe_item(r, by_id, by_name):

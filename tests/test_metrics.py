@@ -215,3 +215,12 @@ def test_cheap_flag_and_alert():
     c["analysis"]["reference_price"] = "historical"
     [it] = market.build(_db_with_item(market=2000, min_buyout=1000, historical=1100), c, FEES, now=NOW)
     assert it["reference"] == 1100
+
+
+def test_vendor_reagent_is_used_when_cheaper():
+    items = _items(**{"Light Leather": (100, 90, 50), "Light Armor Kit": (500, 450, 4), "Coarse Thread": (80, 70, 9)})
+    items[2]["vendor_buy"] = 10
+    [row] = crafts.analyse([_recipe("Light Armor Kit", {"Light Leather": 2, "Coarse Thread": 1})], items, FEES)
+    thread = row["reagents"][1]
+    assert (thread["unit_price"], thread["price_src"]) == (10, "vendor")
+    assert row["cost_buy"] == 210

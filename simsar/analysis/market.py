@@ -94,10 +94,11 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
     available = {r[0]: r[1] for r in conn.execute(
         "SELECT item_id, available FROM ato_daily d WHERE day_ts = "
         "(SELECT MAX(day_ts) FROM ato_daily WHERE item_id = d.item_id)")}
-    info = {r["item_id"]: dict(r) for r in conn.execute("SELECT item_id, name, vendor_sell FROM items")}
+    info = {r["item_id"]: dict(r) for r in conn.execute("SELECT item_id, name, vendor_sell, vendor_buy FROM items")}
     history = load_history(conn, now - a["history_days"] * 86400)
 
-    ids = set(realm) | set(region) | set(ato)
+    # Vendor-only reagents never reach the auction house but recipes still need their price.
+    ids = set(realm) | set(region) | set(ato) | {i for i, x in info.items() if x.get("vendor_buy")}
     names = {i: (info.get(i) or {}).get("name") or f"Item {i}" for i in ids}
     membership = groupmod.assign(names, groups, recipe_items)
     realm_share, market_share = eco["realm_share"], eco["market_share"]
@@ -197,6 +198,7 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
             "groups": keys,
             "group": keys[0] if keys else None,
             "vendor_sell": vendor,
+            "vendor_buy": (info.get(item_id) or {}).get("vendor_buy"),
             "price_now": price_now,
             "price_src": price_src,
             "price_age_h": (now - price_ts) / 3600 if price_ts else None,

@@ -3,13 +3,14 @@ import sqlite3
 import time
 from pathlib import Path
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS items(
   item_id INTEGER PRIMARY KEY,
   name TEXT,
   vendor_sell INTEGER,
+  vendor_buy REAL,
   updated_at INTEGER
 );
 
@@ -109,8 +110,16 @@ def connect(path):
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     conn.executescript(SCHEMA)
+    migrate(conn)
     conn.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
     return conn
+
+
+def migrate(conn):
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(items)")}
+    if "vendor_buy" not in cols:
+        conn.execute("ALTER TABLE items ADD COLUMN vendor_buy REAL")
+    conn.commit()
 
 
 def set_meta(conn, key, value):
@@ -145,6 +154,15 @@ def upsert_vendor_prices(conn, prices):
         "INSERT INTO items(item_id, vendor_sell) VALUES(?, ?) "
         "ON CONFLICT(item_id) DO UPDATE SET vendor_sell = excluded.vendor_sell",
         list(prices.items()),
+    )
+
+
+def upsert_vendor_buy(conn, prices):
+    conn.executemany(
+        "INSERT INTO items(item_id, name, vendor_buy) VALUES(?, ?, ?) "
+        "ON CONFLICT(item_id) DO UPDATE SET vendor_buy = excluded.vendor_buy, "
+        "name = COALESCE(items.name, excluded.name)",
+        [(i, n, p) for i, (n, p) in prices.items()],
     )
 
 

@@ -165,3 +165,21 @@ def test_slash_command_and_diag_do_not_error(tmp_path):
     printed = list(lua.eval("printed").values())
     assert any("TradeSkill API: yes" in p for p in printed)
     assert any("recipes" in p for p in printed)
+
+
+def test_merchant_prices_for_unlimited_stock(tmp_path):
+    api = """
+    local goods = {
+      { "Coarse Thread", "tex", 10, 1, -1, true, false, false, 2320 },
+      { "Salt", "tex", 50, 5, -1, true, false, false, 4289 },
+      { "Pattern: Rare Thing", "tex", 5000, 1, 1, true, false, false, 9999 },
+    }
+    function GetMerchantNumItems() return #goods end
+    function GetMerchantItemInfo(i) local g = goods[i]; return g[1], g[2], g[3], g[4], g[5], g[6], g[7], g[8] end
+    function GetMerchantItemLink(i) return "|Hitem:" .. goods[i][9] .. "::|h" end
+    """
+    lua = run(api, 'fire("MERCHANT_SHOW")')
+    conn, rep = import_saved(lua, tmp_path)
+    assert rep["merchant_prices"] == 2
+    prices = dict(conn.execute("SELECT item_id, vendor_buy FROM items WHERE vendor_buy IS NOT NULL").fetchall())
+    assert prices == {2320: 10, 4289: 10}

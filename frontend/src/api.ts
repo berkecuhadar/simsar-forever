@@ -61,6 +61,7 @@ export interface Reagent {
   name: string;
   count: number;
   unit_price: number | null;
+  price_src: "auction" | "vendor" | null;
   unit_net_sell: number | null;
 }
 

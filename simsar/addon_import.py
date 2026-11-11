@@ -67,6 +67,11 @@ def import_file(conn, path):
                 vendor[int(item_id)] = int(info["vendor"])
     db.upsert_names(conn, names)
     db.upsert_vendor_prices(conn, vendor)
+    merchant = {}
+    for item_id, m in _items(data.get("merchant")):
+        if isinstance(m, dict) and _int(item_id) and isinstance(m.get("price"), (int, float)) and m["price"] > 0:
+            merchant[int(item_id)] = (m.get("name"), float(m["price"]))
+    db.upsert_vendor_buy(conn, merchant)
 
     recipes = 0
     for key, r in _items(data.get("recipes")):
@@ -115,6 +120,7 @@ def import_file(conn, path):
         "invoices": len(invoices),
         "deposits": len(deposits),
         "items": len(names),
+        "merchant_prices": len(merchant),
         "build": data.get("build"),
         "realm": data.get("realm"),
         "faction": data.get("faction"),

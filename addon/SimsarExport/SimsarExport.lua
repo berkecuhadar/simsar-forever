@@ -254,6 +254,20 @@ local function onMailUpdate()
   end
 end
 
+-- Vendor prices for reagents like thread, salt and dyes. Only unlimited stock counts.
+local function onMerchantShow()
+  if not (GetMerchantNumItems and GetMerchantItemInfo and GetMerchantItemLink) then return end
+  local d = db()
+  d.merchant = d.merchant or {}
+  for i = 1, GetMerchantNumItems() do
+    local name, _, price, quantity, numAvailable, _, _, extendedCost = GetMerchantItemInfo(i)
+    local itemID = idFromLink(GetMerchantItemLink(i))
+    if itemID and name and price and price > 0 and numAvailable == -1 and not extendedCost then
+      d.merchant[itemID] = { name = name, price = price / math.max(quantity or 1, 1), seen = time() }
+    end
+  end
+end
+
 local function recordDeposit(itemID, quantity, hours, deposit, vendor)
   if not (itemID and deposit) then return end
   local d = db()
@@ -355,7 +369,7 @@ end
 
 local frame = CreateFrame("Frame")
 for _, event in ipairs({ "PLAYER_LOGIN", "TRADE_SKILL_SHOW", "TRADE_SKILL_UPDATE", "CRAFT_SHOW", "CRAFT_UPDATE",
-  "TRAINER_SHOW", "TRAINER_UPDATE", "MAIL_INBOX_UPDATE" }) do
+  "TRAINER_SHOW", "TRAINER_UPDATE", "MAIL_INBOX_UPDATE", "MERCHANT_SHOW" }) do
   pcall(frame.RegisterEvent, frame, event)
 end
 
@@ -383,6 +397,8 @@ frame:SetScript("OnEvent", function(_, event)
     later("trainer", readTrainer)
   elseif event == "MAIL_INBOX_UPDATE" then
     later("mail", onMailUpdate)
+  elseif event == "MERCHANT_SHOW" then
+    later("merchant", onMerchantShow)
   else
     later("window", function()
       local n = readProfessionWindow()

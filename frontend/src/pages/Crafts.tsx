@@ -42,7 +42,7 @@ function Breakdown({ c }: { c: Craft }) {
             <tr key={`${r.item_id}-${r.name}`}>
               <td className="left">{r.item_id ? <Link to={`/item/${r.item_id}`}>{r.name}</Link> : r.name}</td>
               <td>{num(r.count, 0)}</td>
-              <td><Money value={r.unit_price} /></td>
+              <td><Money value={r.unit_price} />{r.price_src === "vendor" && <span className="muted small"> vendor</span>}</td>
               <td><Money value={r.unit_net_sell} /></td>
               <td><Money value={r.unit_price !== null ? r.unit_price * r.count : null} /></td>
             </tr>
@@ -116,7 +116,7 @@ export default function Crafts() {
           Every known recipe priced at today's market. <b>Profit</b> assumes you buy all materials;
           <b> vs selling mats</b> compares crafting with simply selling the materials you already have. Click a row for
           the material breakdown.
-          <Hint text="Material prices use the cheapest listing. Some materials (thread, salt, dyes) are also sold by vendors, often cheaper than the auction house; Simsar does not know vendor buy prices yet." />
+          <Hint text="Each material is priced at the cheaper of the auction house and a vendor. Vendor prices are recorded by the SimsarExport addon whenever you open a vendor window." />
         </p>
       </div>
       {data && !data.length && (
