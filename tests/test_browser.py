@@ -66,7 +66,7 @@ def render(url, profile):
 @pytest.mark.parametrize("path, expected", [
     ("/", ["DEMO MODE", "Skinning", "Market size/day"]),
     ("/opportunities", ["DEMO MODE", "Opportunities", "(demo)"]),
-    ("/gathering", ["What to gather and sell", "Light Leather (demo)"]),
+    ("/gathering", ["What to sell", "Light Leather (demo)"]),
     ("/crafts", ["Crafts", "Bolt of Linen Cloth (demo)"]),
     ("/glossary", ["Opportunity cost", "Sale rate"]),
     ("/status", ["Data status", "Auction house cut"]),
