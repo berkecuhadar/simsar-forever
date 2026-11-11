@@ -67,8 +67,8 @@ def test_comments_and_long_strings():
 
 
 def test_utf8_bom_and_utf8_text():
-    out = lua.loads("﻿N = \"Şimşek\"".encode("utf-8"))
-    assert out["N"] == "Şimşek"
+    out = lua.loads("﻿N = \"Zoë’s Café\"".encode("utf-8"))
+    assert out["N"] == "Zoë’s Café"
 
 
 def test_errors_report_line():
