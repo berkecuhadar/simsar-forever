@@ -18,6 +18,12 @@ wow:
   auctionator_realm: null
   watch_seconds: 10            # how often the server checks SavedVariables for changes
 
+player:
+  # Your professions, shown first in the dashboard. Empty means all professions are treated alike.
+  # Leatherworking, Skinning, Enchanting, Tailoring, Fishing, Alchemy, Herbalism, Mining,
+  # Blacksmithing, Engineering, Cooking, First Aid
+  professions: []
+
 economy:
   # Fallbacks. Measured values from the SimsarExport addon replace these once available.
   ah_cut: 0.05                 # share of the sale price the auction house keeps (unverified for Forever)

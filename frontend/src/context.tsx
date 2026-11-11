@@ -53,7 +53,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refreshStatus();
-    api.groups().then(setGroups, () => {});
+    api.groups().then((g) => setGroups([...g].sort((a, b) => Number(!!b.mine) - Number(!!a.mine))), () => {});
     const t = setInterval(refreshStatus, 30000);
     return () => clearInterval(t);
   }, []);

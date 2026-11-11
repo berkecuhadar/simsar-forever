@@ -69,7 +69,8 @@ def create_app(cfg, background=True):
 
     @app.get("/api/groups")
     def groups():
-        return groupmod.public(engine.groups)
+        mine = {p.lower() for p in cfg["player"]["professions"]}
+        return [{**g, "mine": g["profession"].lower() in mine} for g in groupmod.public(engine.groups)]
 
     @app.get("/api/items")
     def items(scope: str = "tracked", group: str | None = None):

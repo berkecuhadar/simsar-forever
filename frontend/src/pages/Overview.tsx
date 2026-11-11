@@ -68,7 +68,8 @@ function GroupCard({ g }: { g: GroupOverview }) {
 }
 
 export default function Overview() {
-  const { status, version } = useApp();
+  const { status, version, groups } = useApp();
+  const mine = new Set(groups.filter((g) => g.mine).map((g) => g.key));
   const { data } = useData(api.overview, [], version);
   return (
     <section>
@@ -91,9 +92,22 @@ export default function Overview() {
         </div>
       )}
       {!data ? <div className="loading">Loading...</div> : (
-        <div className="group-grid">
-          {data.groups.map((g) => <GroupCard key={g.key} g={g} />)}
-        </div>
+        mine.size === 0 ? (
+          <div className="group-grid">
+            {data.groups.map((g) => <GroupCard key={g.key} g={g} />)}
+          </div>
+        ) : (
+          <>
+            <h2 className="section-title">Your professions</h2>
+            <div className="group-grid">
+              {data.groups.filter((g) => mine.has(g.key) || g.role === "recipe").map((g) => <GroupCard key={g.key} g={g} />)}
+            </div>
+            <h2 className="section-title">Other professions</h2>
+            <div className="group-grid">
+              {data.groups.filter((g) => !mine.has(g.key) && g.role !== "recipe").map((g) => <GroupCard key={g.key} g={g} />)}
+            </div>
+          </>
+        )
       )}
     </section>
   );

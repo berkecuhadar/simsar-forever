@@ -26,8 +26,8 @@ def test_patterns(name, expected):
 
 
 @pytest.mark.parametrize("name", [
-    "Ceremonial Leather Loincloth", "Cured Ham Steak", "Craftsman's Writ: Heavy Quiver",
-    "Un'Goro Soil", "Raw Black Truffle", "Recipe: Smoked Sagefish", "Smoked Sagefish",
+    "Ceremonial Leather Loincloth", "Craftsman's Writ: Heavy Quiver", "Un'Goro Soil", "Raw Black Truffle",
+    "Green Hills of Stranglethorn - Page 1",
 ])
 def test_non_matches(name):
     assert 1 not in groups.assign({1: name}, GROUPS)
@@ -36,3 +36,22 @@ def test_non_matches(name):
 def test_recipe_membership_adds_items():
     out = groups.assign({7: "Some New Forever Thing"}, GROUPS, {"Leatherworking": {7}})
     assert out[7] == ["leatherworking"]
+
+
+@pytest.mark.parametrize("name, expected", [
+    ("Peacebloom", ["herbalism"]),
+    ("Copper Ore", ["mining"]),
+    ("Thorium Bar", ["mining"]),
+    ("Raw Rainbow Fin Albacore", ["fishing"]),
+    ("Elixir of Wisdom", ["alchemy"]),
+    ("Heavy Sharpening Stone", ["blacksmithing"]),
+    ("Mithril Frag Bomb", ["engineering"]),
+    ("Chunk of Boar Meat", ["cooking"]),
+    ("Heavy Runecloth Bandage", ["first_aid"]),
+    ("Plans: Iron Shield Spike", ["recipes"]),
+    ("Recipe: Smoked Sagefish", ["recipes"]),
+    ("Cured Ham Steak", ["cooking"]),
+    ("Fish Oil", ["fishing", "alchemy"]),
+])
+def test_all_professions(name, expected):
+    assert groups.assign({1: name}, GROUPS).get(1) == expected

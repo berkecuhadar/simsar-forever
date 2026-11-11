@@ -18,6 +18,9 @@ DEFAULTS = {
         "auctionator_realm": None,
         "watch_seconds": 10,
     },
+    "player": {
+        "professions": [],
+    },
     "economy": {
         "ah_cut": 0.05,
         "deposit_rate": 0.15,

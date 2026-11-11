@@ -199,6 +199,7 @@ table.mini .left { text-align: left; }
 .summary-strip { display: flex; flex-wrap: wrap; gap: 22px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 16px; color: var(--muted); }
 .summary-strip b { color: var(--text); }
 
+.section-title { font-size: 16px; color: var(--muted); font-weight: 600; margin: 22px 0 10px; text-transform: uppercase; letter-spacing: 0.4px; }
 .group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
 .group-card { border-top: 3px solid; margin: 0; }
 .group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }

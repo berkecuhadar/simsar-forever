@@ -104,11 +104,137 @@ groups:
       - "^Blood Shard$"
       - "^Dust of Decay$"
 
+  herbalism:
+    title: Herbalism
+    profession: Herbalism
+    role: gather
+    color: "#5cb85c"
+    patterns:
+      - "^(Peacebloom|Silverleaf|Earthroot|Mageroyal|Briarthorn|Stranglekelp|Bruiseweed|Wild Steelbloom)$"
+      - "^(Grave Moss|Kingsblood|Liferoot|Fadeleaf|Goldthorn|Khadgar's Whisker|Wintersbite|Firebloom)$"
+      - "^(Purple Lotus|Arthas' Tears|Sungrass|Blindweed|Ghost Mushroom|Gromsblood|Golden Sansam)$"
+      - "^(Dreamfoil|Mountain Silversage|Plaguebloom|Icecap|Black Lotus|Swiftthistle|Wildvine|Deathweed)$"
+      - "^Bloodthistle$"
+
+  mining:
+    title: Mining
+    profession: Mining
+    role: gather
+    color: "#8a8f98"
+    patterns:
+      - '\bOre$'
+      - "^(Rough|Coarse|Heavy|Solid|Dense) Stone$"
+      - "^(Copper|Bronze|Tin|Iron|Steel|Silver|Gold|Mithril|Truesilver|Thorium|Dark Iron|Arcanite) Bar$"
+      - "^(Tigerseye|Malachite|Shadowgem|Moss Agate|Lesser Moonstone|Jade|Citrine|Aquamarine|Star Ruby)$"
+      - "^(Black Vitriol|Blue Sapphire|Large Opal|Huge Emerald|Azerothian Diamond|Arcane Crystal|Black Diamond)$"
+      - "^Elemental (Earth|Fire|Water|Air)$"
+    exclude:
+      - "^Craftsman's Writ: "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "
+
+  alchemy:
+    title: Alchemy
+    profession: Alchemy
+    role: craft
+    color: "#d9534f"
+    patterns:
+      - "Potion$"
+      - "Elixir"
+      - "^Flask of (?!Oil$)"
+      - "Vial$"
+      - "^(Fire|Frost|Shadow|Blackmouth|Fish) Oil$"
+      - "^Oil of "
+      - "^Philosopher's Stone$"
+      - "^Transmute"
+    exclude:
+      - "^Craftsman's Writ: "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "
+
+  blacksmithing:
+    title: Blacksmithing
+    profession: Blacksmithing
+    role: craft
+    color: "#b0b7c3"
+    patterns:
+      - "Sharpening Stone$"
+      - "Weightstone$"
+      - "Grinding Stone$"
+      - "Skeleton Key$"
+      - "Shield Spike$"
+      - "^(Copper|Bronze|Iron|Steel|Mithril|Thorium|Truesilver|Runed Copper|Silvered Bronze|Green Iron|Golden Scale|Heavy Mithril|Imperial Plate|Ornate Mithril) "
+    exclude:
+      - "^Craftsman's Writ: "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "
+      - " (Ore|Bar|Rod|Tube|Bolts|Trout|Modulator|Grenade|Bomb|Strut|Shells|Shot|Casing|Widget|Framework)$"
+      - "Gyro"
+
+  engineering:
+    title: Engineering
+    profession: Engineering
+    role: craft
+    color: "#f0ad4e"
+    patterns:
+      - "Blasting Powder$"
+      - "Dynamite$"
+      - "Bomb$"
+      - "Grenade$"
+      - "Bolts$"
+      - "Tube$"
+      - "Gizmo$"
+      - "Power Core$"
+      - "Modulator$"
+      - "Goggles$"
+      - "Scope$"
+      - "(Shot|Shells|Slug|Ammo)$"
+      - "Target Dummy$"
+      - "Mechanical (Squirrel|Dragonling|Yeti)$"
+      - "^Gyro"
+      - "^Iron Strut$"
+    exclude:
+      - "^Craftsman's Writ: "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "
+      - "Ammo Pouch$"
+
+  cooking:
+    title: Cooking
+    profession: Cooking
+    role: craft
+    color: "#e67e22"
+    patterns:
+      - "Meat$"
+      - "Flank$"
+      - "Ribs$"
+      - "Claw$"
+      - "^(Small|Large|Giant|Raptor|Tender Wolf)? ?Egg$"
+      - "Spices$"
+      - "^(Cooked|Smoked|Grilled|Roast|Roasted|Boiled|Baked|Fried|Charred|Crispy|Spiced|Savory|Curiously|Hot|Mystery) "
+      - "Stew$"
+      - "^Herb Baked Egg$"
+      - "Delight$"
+      - "Steak$"
+      - "^Sagefish Delight$"
+      - "^Brilliant Smallfish$"
+      - "^(Longjaw Mud Snapper|Rainbow Fin Albacore|Rockscale Cod|Bristle Whisker Catfish|Mithril Head Trout|Slitherskin Mackerel)$"
+    exclude:
+      - "^Craftsman's Writ: "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "
+
+  first_aid:
+    title: First Aid
+    profession: First Aid
+    role: craft
+    color: "#e6e6e6"
+    patterns:
+      - "Bandage$"
+      - "Anti-Venom$"
+    exclude:
+      - "^Craftsman's Writ: "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "
+
   recipes:
     title: Recipes
     profession: Recipes
     role: recipe
     color: "#d4a017"
-    # Only the recipe kinds these professions use.
     patterns:
-      - "^(Pattern|Formula): "
+      - "^(Pattern|Formula|Plans|Schematic|Recipe|Manual): "

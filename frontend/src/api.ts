@@ -100,6 +100,7 @@ export interface Group {
   profession: string;
   role: "gather" | "craft" | "recipe";
   color: string;
+  mine?: boolean;
 }
 
 export interface Brief {

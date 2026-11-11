@@ -13,7 +13,7 @@ const KEYS = ["name", "price_now", "sell_price", "net_sell", "sale_rate", "my_sa
 
 export default function Gathering() {
   const { groups, version } = useApp();
-  const gather = groups.filter((g) => g.role === "gather" || g.key === "enchanting" || g.key === "tailoring");
+  const gather = [...groups.filter((g) => g.role === "gather"), ...groups.filter((g) => g.role === "craft")];
   const [state, setState] = useStored("gathering", { group: "skinning" });
   const [sorting, setSorting] = useStored("gathering.sort", [{ id: "income_day", desc: true }]);
   const { data } = useData(() => api.items("tracked"), [], version);
@@ -38,10 +38,10 @@ export default function Gathering() {
   return (
     <section>
       <div className="page-head">
-        <h1>What to gather and sell</h1>
+        <h1>What to sell</h1>
         <p className="lead">
-          For materials you collect yourself, the question is not "is it cheap" but "what is a unit worth after fees,
-          and how many can the market take per day". <b>Income/day</b> is the most you can expect to earn from one
+          For things you gather or craft yourself, the question is not "is it cheap" but "what is a unit worth after
+          fees, and how many can the market take per day". Gathering professions come first. <b>Income/day</b> is the most you can expect to earn from one
           item per day if you keep it listed at a competitive price.
         </p>
       </div>
