@@ -125,8 +125,12 @@ local function readModern()
   if not (T and T.GetAllRecipeIDs and T.GetRecipeSchematic and T.GetRecipeInfo) then return 0 end
   local base = T.GetBaseProfessionInfo and T.GetBaseProfessionInfo()
   local child = T.GetChildProfessionInfo and T.GetChildProfessionInfo()
-  local prof = (base and base.professionName ~= "" and base.professionName)
-    or (child and (child.parentProfessionName or child.professionName)) or "?"
+  local function named(s) return s and s ~= "" and s or nil end
+  -- While the window opens or switches profession the client briefly reports an empty name. Skip
+  -- that read; the next TRADE_SKILL_LIST_UPDATE carries the name.
+  local prof = named(base and base.professionName) or named(child and child.parentProfessionName)
+    or named(child and child.professionName)
+  if not prof then return 0 end
   -- A profession linked by another player or an NPC crafter says nothing about what you know.
   local foreign = (T.IsTradeSkillLinked and T.IsTradeSkillLinked()) or (T.IsTradeSkillGuild and T.IsTradeSkillGuild())
     or (T.IsNPCCrafting and T.IsNPCCrafting())

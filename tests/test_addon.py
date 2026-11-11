@@ -243,4 +243,27 @@ def test_trainer_reagents_on_the_next_line(tmp_path):
 def test_profession_name_normalised():
     assert addon_import.profession_name("Classic Leatherworking") == "Leatherworking"
     assert addon_import.profession_name("first aid") == "First Aid"
-    assert addon_import.profession_name(None) == "?"
+    assert addon_import.profession_name(None) == "Unknown"
+
+
+def test_empty_profession_duplicates_are_dropped(tmp_path):
+    f = tmp_path / "SimsarForeverExport.lua"
+    f.write_text("""SimsarForeverExportDB = { ["version"] = 1, ["recipes"] = {
+      ["|Light Armor Kit"] = { ["prof"] = "", ["name"] = "Light Armor Kit", ["reagents"] = {} },
+      ["Leatherworking|Light Armor Kit"] = { ["prof"] = "Leatherworking", ["name"] = "Light Armor Kit", ["reagents"] = {} },
+      ["|Mystery Item"] = { ["prof"] = "", ["name"] = "Mystery Item", ["reagents"] = {} },
+    } }""")
+    conn = db.connect(":memory:")
+    rep = addon_import.import_file(conn, f)
+    assert rep["recipes"] == 2
+    assert dict(conn.execute("SELECT name, profession FROM recipes").fetchall()) == {
+        "Light Armor Kit": "Leatherworking", "Mystery Item": "Unknown"}
+
+
+def test_empty_profession_name_is_skipped_in_game(tmp_path):
+    lua = run(FOREVER_MODERN.replace('professionName = "Leatherworking"', 'professionName = ""')
+              .replace('parentProfessionName = "Leatherworking"', 'parentProfessionName = ""')
+              .replace('professionName = "Classic Leatherworking"', 'professionName = ""'),
+              'fire("TRADE_SKILL_SHOW")')
+    conn, rep = import_saved(lua, tmp_path)
+    assert rep["recipes"] == 0

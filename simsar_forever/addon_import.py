@@ -17,7 +17,7 @@ def profession_name(raw):
     for p in PROFESSIONS:
         if p.lower() in text:
             return p
-    return raw or "?"
+    return raw or "Unknown"
 
 
 DURATIONS = (2, 8, 24)
@@ -87,8 +87,13 @@ def import_file(conn, path):
     db.upsert_vendor_buy(conn, merchant)
 
     recipes = 0
+    # Addon 0.1.0 sometimes saved recipes while the client reported an empty profession name; they
+    # are duplicates of a named entry.
+    named = {r.get("name") for _, r in _items(data.get("recipes")) if isinstance(r, dict) and r.get("prof")}
     for key, r in _items(data.get("recipes")):
         if not isinstance(r, dict) or not r.get("name"):
+            continue
+        if not r.get("prof") and r["name"] in named:
             continue
         product_id = _int(r.get("itemID"))
         _store_recipe(
