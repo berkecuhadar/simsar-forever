@@ -1,0 +1,8 @@
+## Interface: 16001, 11508, 11509
+## Title: Simsar Export
+## Notes: Saves recipes, reagents, auction deposits and sale invoices for the Simsar dashboard.
+## Author: Berke
+## Version: 0.1.0
+## SavedVariables: SimsarExportDB
+
+SimsarExport.lua
