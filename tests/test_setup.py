@@ -118,3 +118,21 @@ def test_install_removes_the_old_addon_name(tmp_path):
     addon_install.install(tmp_path)
     assert not old.exists() and other.exists()
     assert (addons / "SimsarForeverExport" / "SimsarForeverExport.toc").exists()
+
+
+def test_background_waits_after_a_recent_tsm_check(tmp_path, monkeypatch):
+    import threading
+    import time as _time
+    from simsar_forever import db, refresh
+    cfg = config.load(tmp_path / "config.yaml")
+    path = config.db_path(cfg)
+    db.set_meta(db.connect(path), "tsm_region_checked_at", int(_time.time()))
+    calls = []
+    monkeypatch.setattr(refresh, "fetch_tsm", lambda *a: calls.append(1))
+    bg = refresh.Background(cfg, path, engine=None)
+    t = threading.Thread(target=bg._poll_tsm, daemon=True)
+    t.start()
+    _time.sleep(0.3)
+    bg.stop.set()
+    t.join(2)
+    assert calls == []

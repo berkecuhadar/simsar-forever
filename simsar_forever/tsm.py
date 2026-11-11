@@ -166,9 +166,10 @@ def fetch(cfg, conn, session=None):
                     db.set_meta(conn, stamp_key, updated_at)
                 if etag:
                     db.set_meta(conn, etag_key, etag)
-            db.set_meta(conn, f"tsm_{kind}_checked_at", int(time.time()))
         except (TsmError, ValueError) as e:
             rep["error"] = str(e)
+        # Failed attempts count too, so a restart does not retry a rate-limited host at once.
+        db.set_meta(conn, f"tsm_{kind}_checked_at", int(time.time()))
         db.log_fetch(conn, rep["source"], rep["ok"], rep)
         reports.append(rep)
     return reports

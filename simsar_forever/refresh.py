@@ -131,6 +131,10 @@ class Background:
             t.start()
 
     def _poll_tsm(self):
+        # Restarting the dashboard should not hit TSM again right away; the host rate limits.
+        interval = self.cfg["tsm"]["check_minutes"] * 60
+        last = max([db.get_meta(self.tsm_conn, f"tsm_{k}_checked_at") or 0 for k in ("realm", "region")])
+        self.stop.wait(max(0, last + interval - time.time()))
         while not self.stop.is_set():
             try:
                 with self.tsm_lock:
