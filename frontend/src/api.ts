@@ -171,9 +171,9 @@ export interface Install {
   flavor: string | null;
   has_wtf: boolean;
   auctionator_version: string | null;
-  simsar_export_installed: boolean;
-  simsar_export_version: string | null;
-  accounts: { name: string; has_auctionator: boolean; auctionator_mtime: number | null; has_simsar_export: boolean }[];
+  export_addon_installed: boolean;
+  export_addon_version: string | null;
+  accounts: { name: string; has_auctionator: boolean; auctionator_mtime: number | null; has_export_addon: boolean }[];
   auctionator_realms?: { key: string; items: number }[];
 }
 

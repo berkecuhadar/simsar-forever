@@ -56,7 +56,7 @@ export default function StatusPage() {
                     {src.path && <div className="muted">{src.path}</div>}
                   </>}
                   {src.key === "addon" && <>
-                    {src.present ? `${src.recipes ?? 0} recipes, ${src.invoices ?? 0} sale invoices` : "SimsarExport.lua not found yet"}
+                    {src.present ? `${src.recipes ?? 0} recipes, ${src.invoices ?? 0} sale invoices` : "SimsarForeverExport.lua not found yet"}
                     {src.path && <div className="muted">{src.path}</div>}
                   </>}
                   {src.error && <div className="neg">{src.error}</div>}

@@ -1,6 +1,6 @@
 import pytest
 
-from simsar import lua
+from simsar_forever import lua
 
 
 def test_globals_and_basic_values():

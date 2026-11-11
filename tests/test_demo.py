@@ -1,5 +1,5 @@
-from simsar import config, db, demo
-from simsar.analysis.engine import Engine
+from simsar_forever import config, db, demo
+from simsar_forever.analysis.engine import Engine
 
 
 def test_demo_is_labelled_and_analysable():

@@ -2,8 +2,8 @@ import pytest
 import yaml
 from fastapi.testclient import TestClient
 
-from simsar import config, discover, forever, refresh, tsm
-from simsar.web.app import create_app
+from simsar_forever import config, discover, forever, refresh, tsm
+from simsar_forever.web.app import create_app
 
 
 def test_forever_slugs():
@@ -52,7 +52,7 @@ def test_discover_describes_a_forever_folder(tmp_path):
     assert info["is_forever"] and info["flavor"] == "wowf"
     assert info["accounts"] == [{"name": "ACC#1", "has_auctionator": True,
                                  "auctionator_mtime": info["accounts"][0]["auctionator_mtime"],
-                                 "has_simsar_export": False}]
+                                 "has_export_addon": False}]
 
 
 @pytest.fixture
@@ -86,7 +86,7 @@ def test_install_addon_endpoint(client):
     (game / "Interface" / "AddOns").mkdir(parents=True)
     r = c.post("/api/setup/install-addon", json={"game_dir": str(game)})
     assert r.status_code == 200
-    assert (game / "Interface" / "AddOns" / "SimsarExport" / "SimsarExport.lua").exists()
+    assert (game / "Interface" / "AddOns" / "SimsarForeverExport" / "SimsarForeverExport.lua").exists()
     assert c.post("/api/setup/install-addon", json={"game_dir": str(tmp / "nope")}).status_code == 400
 
 
@@ -107,3 +107,16 @@ def test_rate_limit_respects_retry_after(monkeypatch):
     monkeypatch.setattr(tsm.time, "sleep", sleeps.append)
     status, _, _ = tsm.download("http://x", 5, session=S())
     assert status == 200 and sleeps == [3.0]
+
+
+def test_install_removes_the_old_addon_name(tmp_path):
+    from simsar_forever import addon_install
+    addons = tmp_path / "Interface" / "AddOns"
+    old = addons / "SimsarExport"
+    old.mkdir(parents=True)
+    (old / "SimsarExport.toc").write_text("## Title: Simsar Export\n")
+    other = addons / "SomeoneElsesAddon"
+    other.mkdir()
+    addon_install.install(tmp_path)
+    assert not old.exists() and other.exists()
+    assert (addons / "SimsarForeverExport" / "SimsarForeverExport.toc").exists()

@@ -7,14 +7,14 @@
 local DB_VERSION = 1
 local DURATION_HOURS = { 2, 8, 24 }
 
-SimsarExportDB = SimsarExportDB or {}
+SimsarForeverExportDB = SimsarForeverExportDB or {}
 
 local function say(msg)
-  print("|cff4fc3f7Simsar|r " .. tostring(msg))
+  print("|cff4fc3f7Simsar Forever|r " .. tostring(msg))
 end
 
 local function db()
-  local d = SimsarExportDB
+  local d = SimsarForeverExportDB
   d.version = DB_VERSION
   d.recipes = d.recipes or {}
   d.invoices = d.invoices or {}
@@ -155,7 +155,7 @@ local function readProfessionWindow()
 end
 
 -- Tooltip helpers: the trainer and recipe items only expose reagents through tooltip text.
-local scanner = CreateFrame("GameTooltip", "SimsarScanTooltip", nil, "GameTooltipTemplate")
+local scanner = CreateFrame("GameTooltip", "SimsarForeverScanTooltip", nil, "GameTooltipTemplate")
 scanner:SetOwner(WorldFrame, "ANCHOR_NONE")
 
 local reagentPrefix = (SPELL_REAGENTS or "Reagents: "):gsub("|n", ""):gsub("%s+$", "")
@@ -407,13 +407,14 @@ frame:SetScript("OnEvent", function(_, event)
   end
 end)
 
-SLASH_SIMSAR1 = "/simsar"
-SlashCmdList.SIMSAR = function(arg)
+SLASH_SIMSARFOREVER1 = "/simsarforever"
+SLASH_SIMSARFOREVER2 = "/sfe"
+SlashCmdList.SIMSARFOREVER = function(arg)
   arg = (arg or ""):lower()
   if arg == "diag" then
     diag()
   elseif arg == "reset" then
-    SimsarExportDB = {}
+    SimsarForeverExportDB = {}
     say("cleared. /reload to write the empty file.")
   else
     local n = readProfessionWindow()

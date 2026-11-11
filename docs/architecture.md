@@ -5,7 +5,7 @@ TSM public CSVs ──► tsm.py ─────────┐
                                     │
 Auctionator.lua ──► auctionator.py ─┤                         ┌─► web/app.py (FastAPI, /api/*)
                     (lua.py, CBOR)  ├─► SQLite (db.py) ─► analysis/engine.py
-SimsarExport.lua ─► addon_import.py ┘                         └─► cli.py (simsar top)
+SimsarForeverExport.lua ─► addon_import.py ┘                         └─► cli.py (simsar-forever top)
                                                                         │
                                                     frontend/ (React) ◄─┘ built into web/static
 ```
@@ -14,18 +14,18 @@ SimsarExport.lua ─► addon_import.py ┘                         └─► cl
 
 | Path | Role |
 |---|---|
-| `simsar/config.py` | Defaults, `config.yaml` loading, validation. |
-| `simsar/db.py` | SQLite schema, small helpers, migrations. |
-| `simsar/lua.py` | Data-only SavedVariables parser. Keeps binary strings intact. |
-| `simsar/tsm.py` | Downloads and parses TSM CSVs with retries, ETags and duplicate-scan skip. |
-| `simsar/auctionator.py` | Reads Auctionator's price database (CBOR), posting history, vendor cache. |
-| `simsar/addon_import.py` | Reads SimsarExport data and derives measured AH fees. |
-| `simsar/refresh.py` | One-shot refresh and the background thread (TSM polling, file watching, alerts). |
-| `simsar/groups.py`, `simsar/data/groups.yaml` | Profession groups by item name pattern. |
-| `simsar/analysis/` | Fees, robust statistics, the item table, crafts, commentary, alerts, cached engine. |
-| `simsar/web/` | FastAPI app and the status panel builder. Serves the built UI from `web/static`. |
-| `simsar/demo.py` | Synthetic demo data. |
-| `addon/SimsarExport/` | In-game addon. |
+| `simsar_forever/config.py` | Defaults, `config.yaml` loading, validation. |
+| `simsar_forever/db.py` | SQLite schema, small helpers, migrations. |
+| `simsar_forever/lua.py` | Data-only SavedVariables parser. Keeps binary strings intact. |
+| `simsar_forever/tsm.py` | Downloads and parses TSM CSVs with retries, ETags and duplicate-scan skip. |
+| `simsar_forever/auctionator.py` | Reads Auctionator's price database (CBOR), posting history, vendor cache. |
+| `simsar_forever/addon_import.py` | Reads SimsarForeverExport data and derives measured AH fees. |
+| `simsar_forever/refresh.py` | One-shot refresh and the background thread (TSM polling, file watching, alerts). |
+| `simsar_forever/groups.py`, `simsar_forever/data/groups.yaml` | Profession groups by item name pattern. |
+| `simsar_forever/analysis/` | Fees, robust statistics, the item table, crafts, commentary, alerts, cached engine. |
+| `simsar_forever/web/` | FastAPI app and the status panel builder. Serves the built UI from `web/static`. |
+| `simsar_forever/demo.py` | Synthetic demo data. |
+| `addon/SimsarForeverExport/` | In-game addon. |
 | `frontend/` | React + TypeScript UI (Vite, ECharts, TanStack Table). |
 
 ## Data flow
@@ -34,7 +34,7 @@ SimsarExport.lua ─► addon_import.py ┘                         └─► cl
    stored as one row per item in `tsm_realm` or `tsm_region`, so price history accumulates.
    Unchanged files are skipped by ETag and by `updatedAt`.
 2. Every `wow.watch_seconds` it compares the size and modification time of `Auctionator.lua` and
-   `SimsarExport.lua` with the last import and re-imports changed files. The game only writes these
+   `SimsarForeverExport.lua` with the last import and re-imports changed files. The game only writes these
    files on `/reload`, logout or exit.
 3. Each import bumps `data_version` in the `meta` table. The analysis engine caches its result and
    rebuilds only when `data_version` changes (about 0.3 s for 6,000 items).
@@ -57,7 +57,7 @@ no secrets: TSM's public files need no key.
 
 ## Adding a profession group
 
-Groups match items by name. To change one, copy `simsar/data/groups.yaml` to `groups.yaml` next to
+Groups match items by name. To change one, copy `simsar_forever/data/groups.yaml` to `groups.yaml` next to
 `config.yaml` and edit it; a group there replaces the built-in group with the same key.
 
 ```yaml

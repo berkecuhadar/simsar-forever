@@ -1,15 +1,15 @@
-"""Drives addon/SimsarExport against a fake WoW API and imports what it saves."""
+"""Drives addon/SimsarForeverExport against a fake WoW API and imports what it saves."""
 
 from pathlib import Path
 
 import pytest
 
-from simsar import addon_import, db
+from simsar_forever import addon_import, db
 
 lupa = pytest.importorskip("lupa.lua51")
 
 ROOT = Path(__file__).resolve().parents[1]
-ADDON = (ROOT / "addon" / "SimsarExport" / "SimsarExport.lua").read_text(encoding="utf-8")
+ADDON = (ROOT / "addon" / "SimsarForeverExport" / "SimsarForeverExport.lua").read_text(encoding="utf-8")
 STUB = (Path(__file__).parent / "wowstub.lua").read_text(encoding="utf-8")
 
 
@@ -24,7 +24,7 @@ def run(api_lua, actions_lua):
 
 
 def import_saved(lua, tmp_path):
-    f = tmp_path / "SimsarExport.lua"
+    f = tmp_path / "SimsarForeverExport.lua"
     f.write_text(lua.eval("savedVariables()"), encoding="utf-8")
     conn = db.connect(":memory:")
     return conn, addon_import.import_file(conn, f)
@@ -161,7 +161,7 @@ def test_legacy_posting_records_deposit(tmp_path):
 
 
 def test_slash_command_and_diag_do_not_error(tmp_path):
-    lua = run(CLASSIC_TRADESKILL, 'SlashCmdList.SIMSAR("diag"); SlashCmdList.SIMSAR("")')
+    lua = run(CLASSIC_TRADESKILL, 'SlashCmdList.SIMSARFOREVER("diag"); SlashCmdList.SIMSARFOREVER("")')
     printed = list(lua.eval("printed").values())
     assert any("TradeSkill API: yes" in p for p in printed)
     assert any("recipes" in p for p in printed)

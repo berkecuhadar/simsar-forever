@@ -20,7 +20,7 @@ function InstallCard({ inst, selected, onPick }: { inst: Install; selected: bool
         <div className="muted small">
           {inst.is_forever ? "WoW Forever" : "Not a _forever_ folder"}
           {inst.auctionator_version ? `, Auctionator ${inst.auctionator_version}` : ", Auctionator not installed"}
-          {inst.simsar_export_installed ? ", SimsarExport installed" : ""}
+          {inst.export_addon_installed ? ", SimsarForeverExport installed" : ""}
           {`, ${inst.accounts.length} account${inst.accounts.length === 1 ? "" : "s"}`}
         </div>
       </div>
@@ -188,18 +188,18 @@ export default function Setup() {
         {inspected?.exists && inspected.has_wtf && (
           <div className="filters">
             <span className="small">
-              SimsarExport addon:{" "}
-              {!inspected.simsar_export_installed ? <span className="neg">not installed</span>
-                : inspected.simsar_export_version !== info.addon_version
-                  ? <span className="neg">version {inspected.simsar_export_version}, {info.addon_version} available</span>
-                  : <span className="pos">installed ({inspected.simsar_export_version})</span>}
+              SimsarForeverExport addon:{" "}
+              {!inspected.export_addon_installed ? <span className="neg">not installed</span>
+                : inspected.export_addon_version !== info.addon_version
+                  ? <span className="neg">version {inspected.export_addon_version}, {info.addon_version} available</span>
+                  : <span className="pos">installed ({inspected.export_addon_version})</span>}
               <Hint text="The addon saves your recipes, vendor prices, the real auction house cut and deposits so the dashboard does not have to guess them. It only reads; it never posts, buys or clicks." />
             </span>
-            {(!inspected.simsar_export_installed || inspected.simsar_export_version !== info.addon_version) && (
+            {(!inspected.export_addon_installed || inspected.export_addon_version !== info.addon_version) && (
               <button onClick={() => api.installAddon(inspected.path).then(
                 (r) => { setAddonMsg(`Installed to ${r.path}. Enable it in the game's AddOns list, then /reload.`); setGameDir(""); setTimeout(() => setGameDir(inspected.path), 50); },
                 (e) => setAddonMsg(String(e)))}>
-                {inspected.simsar_export_installed ? "Update addon" : "Install addon"}
+                {inspected.export_addon_installed ? "Update addon" : "Install addon"}
               </button>
             )}
             {addonMsg && <span className="small muted">{addonMsg}</span>}

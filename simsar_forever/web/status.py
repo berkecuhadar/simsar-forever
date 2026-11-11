@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .. import __version__, auctionator, db, refresh
 
-ADDON_TOC = Path(__file__).resolve().parents[2] / "addon" / "SimsarExport" / "SimsarExport.toc"
+ADDON_TOC = Path(__file__).resolve().parents[2] / "addon" / "SimsarForeverExport" / "SimsarForeverExport.toc"
 
 
 def _last_log(conn, source):
@@ -75,32 +75,32 @@ def build(cfg, conn, result, now=None):
     addon = db.get_meta(conn, "addon_last_import")
     addon_path = refresh.addon_path(cfg)
     has_addon_file = bool(addon_path and addon_path.exists())
-    sources.append({"key": "addon", "label": "SimsarExport addon", "ok": bool(addon and addon.get("ok")),
+    sources.append({"key": "addon", "label": "SimsarForeverExport addon", "ok": bool(addon and addon.get("ok")),
                     "path": str(addon_path) if addon_path else None, "present": has_addon_file,
                     "recipes": (addon or {}).get("recipes"), "invoices": (addon or {}).get("invoices"),
                     "error": (addon or {}).get("error") or (addon or {}).get("last_error")})
-    installed_dir = auctionator.addon_dir(cfg, "SimsarExport")
-    if installed_dir and (installed_dir / "SimsarExport.toc").exists() and ADDON_TOC.exists():
-        have = auctionator.read_toc(installed_dir / "SimsarExport.toc").get("Version")
+    installed_dir = auctionator.addon_dir(cfg, "SimsarForeverExport")
+    if installed_dir and (installed_dir / "SimsarForeverExport.toc").exists() and ADDON_TOC.exists():
+        have = auctionator.read_toc(installed_dir / "SimsarForeverExport.toc").get("Version")
         want = auctionator.read_toc(ADDON_TOC).get("Version")
         if have != want:
-            warn("warn", f"The installed SimsarExport addon is version {have}, this Simsar Forever ships {want}. "
-                         "Run: simsar install-addon")
-    installed = bool(installed_dir and (installed_dir / "SimsarExport.toc").exists())
+            warn("warn", f"The installed SimsarForeverExport addon is version {have}, this Simsar Forever ships {want}. "
+                         "Run: simsar-forever install-addon")
+    installed = bool(installed_dir and (installed_dir / "SimsarForeverExport.toc").exists())
     if not demo and cfg["wow"].get("game_dir") and not has_addon_file:
         if installed:
-            warn("info", "SimsarExport is installed but has not written any data yet. Log in, open your "
+            warn("info", "SimsarForeverExport is installed but has not written any data yet. Log in, open your "
                          "profession windows, then /reload.")
         else:
-            warn("info", "Install the SimsarExport addon (run: simsar install-addon) to import your recipes, "
+            warn("info", "Install the SimsarForeverExport addon (run: simsar-forever install-addon) to import your recipes, "
                          "vendor prices and the real AH cut and deposits.")
 
     fees = result["fees"]
     if fees.cut_source == "config" and not demo:
         warn("info", f"The auction house cut is assumed to be {fees.ah_cut:.0%}. It will be measured from your "
-                     "sale mails once the SimsarExport addon has seen some.")
+                     "sale mails once the SimsarForeverExport addon has seen some.")
     if not result["crafts"] and not demo:
-        warn("info", "No recipes yet. Open your profession windows in game with SimsarExport installed, "
+        warn("info", "No recipes yet. Open your profession windows in game with SimsarForeverExport installed, "
                      "then /reload.")
 
     eco = cfg["economy"]

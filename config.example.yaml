@@ -28,7 +28,7 @@ player:
   professions: []
 
 economy:
-  # Fallbacks. Measured values from the SimsarExport addon replace these once available.
+  # Fallbacks. Measured values from the SimsarForeverExport addon replace these once available.
   ah_cut: 0.05                 # share of the sale price the auction house keeps (unverified for Forever)
   deposit_rate: 0.15           # deposit as a share of vendor sell price for one listing (unverified)
   auction_hours: 24            # listing duration you normally use: 2, 8 or 24

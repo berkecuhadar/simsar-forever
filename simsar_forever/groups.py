@@ -18,7 +18,7 @@ def _compile(patterns, key):
 
 
 def load(cfg=None):
-    with resources.files("simsar").joinpath("data/groups.yaml").open(encoding="utf-8") as f:
+    with resources.files("simsar_forever").joinpath("data/groups.yaml").open(encoding="utf-8") as f:
         spec = yaml.safe_load(f)["groups"]
     if cfg:
         user_file = Path(cfg["_base_dir"]) / "groups.yaml"

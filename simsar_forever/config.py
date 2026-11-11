@@ -75,7 +75,7 @@ def _merge(base, override):
 
 
 def default_path():
-    return Path(os.environ.get("SIMSAR_CONFIG", "config.yaml"))
+    return Path(os.environ.get("SIMSAR_FOREVER_CONFIG", "config.yaml"))
 
 
 def load(path=None, overrides=None):

@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS recipe_reagents(
   PRIMARY KEY(recipe_key, item_id, name)
 );
 
--- Sold-auction mail invoices captured by the SimsarExport addon.
+-- Sold-auction mail invoices captured by the SimsarForeverExport addon.
 CREATE TABLE IF NOT EXISTS ah_invoices(
   seen_at INTEGER, item_name TEXT, quantity INTEGER,
   bid INTEGER, buyout INTEGER, deposit INTEGER, consignment INTEGER,

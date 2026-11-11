@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-from simsar.analysis import econometrics as em
+from simsar_forever.analysis import econometrics as em
 
 H3 = 3 * 3600
 

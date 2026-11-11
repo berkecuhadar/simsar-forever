@@ -9,11 +9,11 @@ import time
 
 import pytest
 
-from simsar import config, db, demo
-from simsar.web.app import create_app, static_dir
+from simsar_forever import config, db, demo
+from simsar_forever.web.app import create_app, static_dir
 
 BROWSERS = [
-    os.environ.get("SIMSAR_BROWSER", ""),
+    os.environ.get("SIMSAR_FOREVER_BROWSER", ""),
     r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
     r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",

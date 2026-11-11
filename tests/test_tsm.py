@@ -1,6 +1,6 @@
 import pytest
 
-from simsar import db, tsm
+from simsar_forever import db, tsm
 
 REALM = (
     "itemId,name,marketValue,minBuyout,recent,historical,updatedAt\n"

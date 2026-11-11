@@ -99,7 +99,7 @@ def accounts(game_dir):
             "name": entry.name,
             "has_auctionator": ato.exists(),
             "auctionator_mtime": int(ato.stat().st_mtime) if ato.exists() else None,
-            "has_simsar_export": (sv / "SimsarExport.lua").exists(),
+            "has_export_addon": (sv / "SimsarForeverExport.lua").exists(),
         })
     return out
 
@@ -134,8 +134,8 @@ def describe(game_dir):
         "flavor": flavor,
         "has_wtf": (p / "WTF").is_dir(),
         "auctionator_version": toc.get("Version"),
-        "simsar_export_installed": (addons / "SimsarExport" / "SimsarExport.toc").exists(),
-        "simsar_export_version": auctionator.read_toc(addons / "SimsarExport" / "SimsarExport.toc").get("Version"),
+        "export_addon_installed": (addons / "SimsarForeverExport" / "SimsarForeverExport.toc").exists(),
+        "export_addon_version": auctionator.read_toc(addons / "SimsarForeverExport" / "SimsarForeverExport.toc").get("Version"),
         "accounts": accounts(p),
     }
 

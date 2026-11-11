@@ -1,6 +1,6 @@
 import pytest
 
-from simsar import groups
+from simsar_forever import groups
 
 GROUPS = groups.load()
 

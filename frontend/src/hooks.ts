@@ -23,7 +23,7 @@ export function useData<T>(load: () => Promise<T>, deps: unknown[] = [], refresh
 export function useStored<T>(key: string, initial: T): [T, (v: T | ((old: T) => T)) => void] {
   const [value, setValue] = useState<T>(() => {
     try {
-      const raw = localStorage.getItem(`simsar:${key}`);
+      const raw = localStorage.getItem(`simsar-forever:${key}`);
       if (raw === null) return initial;
       const parsed = JSON.parse(raw);
       if (Array.isArray(initial) || typeof initial !== "object" || initial === null) return parsed;
@@ -34,7 +34,7 @@ export function useStored<T>(key: string, initial: T): [T, (v: T | ((old: T) => 
   });
   useEffect(() => {
     try {
-      localStorage.setItem(`simsar:${key}`, JSON.stringify(value));
+      localStorage.setItem(`simsar-forever:${key}`, JSON.stringify(value));
     } catch {
       // storage may be unavailable; filters just will not persist
     }

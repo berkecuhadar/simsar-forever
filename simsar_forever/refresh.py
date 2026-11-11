@@ -9,7 +9,7 @@ from . import addon_import, auctionator, db, tsm
 from .analysis import alerts
 from .analysis.engine import bump_data_version
 
-log = logging.getLogger("simsar")
+log = logging.getLogger("simsar_forever")
 
 
 def fetch_tsm(cfg, conn, session=None):
@@ -35,7 +35,7 @@ def auctionator_path(cfg):
 
 def addon_path(cfg):
     sv = auctionator.saved_variables_dir(cfg)
-    return sv / "SimsarExport.lua" if sv else None
+    return sv / "SimsarForeverExport.lua" if sv else None
 
 
 def import_auctionator(cfg, conn, force=False):
@@ -116,7 +116,7 @@ class Background:
     def __init__(self, cfg, conn, engine):
         self.cfg, self.conn, self.engine = cfg, conn, engine
         self.stop = threading.Event()
-        self.thread = threading.Thread(target=self._run, name="simsar-refresh", daemon=True)
+        self.thread = threading.Thread(target=self._run, name="simsar-forever-refresh", daemon=True)
         self.lock = threading.Lock()
 
     def start(self):

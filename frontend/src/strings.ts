@@ -111,7 +111,7 @@ export const CRAFT_COLUMNS: Record<string, { title: string; hint: string }> = {
 
 export const GLOSSARY: { term: string; text: string }[] = [
   { term: "Copper, silver, gold", text: "All prices are stored in copper. 100 copper = 1 silver, 100 silver = 1 gold." },
-  { term: "Auction house cut", text: "Share of the sale price the auction house keeps when something sells. Vanilla used 5% on faction auction houses and 15% on the neutral one. Simsar Forever measures the real value from your sale mails once the SimsarExport addon has seen some." },
+  { term: "Auction house cut", text: "Share of the sale price the auction house keeps when something sells. Vanilla used 5% on faction auction houses and 15% on the neutral one. Simsar Forever measures the real value from your sale mails once the SimsarForeverExport addon has seen some." },
   { term: "Deposit", text: "A fee paid when you post an auction, based on the item's vendor price and the duration. It is refunded if the item sells and lost if the listing expires or you cancel it. Items that rarely sell therefore cost you deposits again and again." },
   { term: "Sale rate", text: "The share of listings that end in a sale. With a 20% sale rate you list an item five times on average before it sells, losing four deposits on the way." },
   { term: "Market value", text: "TSM's estimate of the normal price on your realm, based on the last two weeks of scans." },

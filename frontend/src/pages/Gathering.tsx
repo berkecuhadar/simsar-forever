@@ -52,7 +52,7 @@ export default function Gathering() {
           </button>
         ))}
         <span className="spacer" />
-        <button onClick={() => downloadCsv(`simsar-${state.group}`, rows, columns)}>Export CSV</button>
+        <button onClick={() => downloadCsv(`simsar-forever-${state.group}`, rows, columns)}>Export CSV</button>
       </div>
       {top.length > 0 && (
         <div className="card">

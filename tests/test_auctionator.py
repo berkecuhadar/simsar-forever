@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from simsar import auctionator, db
+from simsar_forever import auctionator, db
 from tests.wowfiles import auctionator_file
 
 FIXTURE = Path(__file__).parent / "fixtures" / "Auctionator.lua"

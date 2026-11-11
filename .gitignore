@@ -14,7 +14,7 @@ dist/
 node_modules/
 frontend/dist/
 *.tsbuildinfo
-simsar/web/static/
+simsar_forever/web/static/
 
 # Local data and config
 /data/

@@ -1,8 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from simsar import config, db, demo
-from simsar.web.app import create_app
+from simsar_forever import config, db, demo
+from simsar_forever.web.app import create_app
 
 
 @pytest.fixture

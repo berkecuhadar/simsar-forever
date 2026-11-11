@@ -19,7 +19,7 @@ from ..analysis import econometrics, explain, market
 from ..analysis.engine import Engine
 from . import status as statusmod
 
-log = logging.getLogger("simsar")
+log = logging.getLogger("simsar_forever")
 
 ITEM_LIST_FIELDS = (
     "item_id", "name", "groups", "group", "price_now", "price_src", "market", "historical", "sell_price",
@@ -31,7 +31,7 @@ ITEM_LIST_FIELDS = (
 
 
 def static_dir():
-    return Path(str(resources.files("simsar").joinpath("web/static")))
+    return Path(str(resources.files("simsar_forever").joinpath("web/static")))
 
 
 class Runtime:

@@ -1,7 +1,7 @@
 # Metrics
 
 Every number Simsar Forever shows, how it is computed, and when it can mislead. All prices are in copper
-(1 gold = 100 silver = 10,000 copper). Code: `simsar/analysis/`.
+(1 gold = 100 silver = 10,000 copper). Code: `simsar_forever/analysis/`.
 
 Settings referred to below live in `config.yaml` (defaults in `config.example.yaml`).
 
@@ -17,9 +17,9 @@ Settings referred to below live in `config.yaml` (defaults in `config.example.ya
 | `sold_per_day_region` | TSM region `soldPerDay` | Units sold per day, region-wide. |
 | Auctionator price | `AUCTIONATOR_PRICE_DATABASE` `m` | Last minimum price your client saw. |
 | Auctionator daily | `h`, `l`, `a` per scan day | Highest and lowest minimum price of the day, most units seen. |
-| `vendor_sell` | Auctionator vendor cache, SimsarExport | What a vendor pays you. Drives the deposit. |
-| `vendor_buy` | SimsarExport (merchant windows) | What a vendor charges. Only unlimited-stock items. |
-| AH cut, deposit rate | SimsarExport (sale mails, posting) | Fall back to `economy.ah_cut` and `economy.deposit_rate`. |
+| `vendor_sell` | Auctionator vendor cache, SimsarForeverExport | What a vendor pays you. Drives the deposit. |
+| `vendor_buy` | SimsarForeverExport (merchant windows) | What a vendor charges. Only unlimited-stock items. |
+| AH cut, deposit rate | SimsarForeverExport (sale mails, posting) | Fall back to `economy.ah_cut` and `economy.deposit_rate`. |
 
 ## Prices
 
@@ -63,7 +63,7 @@ The last listing's deposit is refunded, so only `listings_per_sale - 1` deposits
 
 Failure modes: TSM's sale rate is region-wide and averages over all sellers; underpricing sells
 faster than this suggests, overpricing slower. The deposit formula for Forever is unverified until
-SimsarExport has recorded posts; the default rate is a guess.
+SimsarForeverExport has recorded posts; the default rate is a guess.
 
 ## Volume
 
@@ -205,7 +205,7 @@ Each alert fires at most once per item (or recipe) per day.
 
 ## Advanced statistics (item page)
 
-Computed on demand for one item from its stored history (`simsar/analysis/econometrics.py`,
+Computed on demand for one item from its stored history (`simsar_forever/analysis/econometrics.py`,
 using NumPy, SciPy, pandas and statsmodels). Each part says what data it still needs instead of
 showing a number built on too little.
 

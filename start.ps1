@@ -17,7 +17,7 @@ if (-not (Test-Path $venvPython)) {
 
 # Reinstall when dependencies changed or the folder was moved or renamed (the editable install
 # remembers the old path).
-$stamp = Join-Path $PSScriptRoot ".venv\.simsar-installed"
+$stamp = Join-Path $PSScriptRoot ".venv\.simsar-forever-installed"
 $installedFrom = ""
 if (Test-Path $stamp) { $installedFrom = "$(Get-Content $stamp -Raw)".Trim().Trim([char]0xFEFF) }
 if ($installedFrom -ne $PSScriptRoot -or (Get-Item pyproject.toml).LastWriteTime -gt (Get-Item $stamp).LastWriteTime) {
@@ -28,7 +28,7 @@ if ($installedFrom -ne $PSScriptRoot -or (Get-Item pyproject.toml).LastWriteTime
     [IO.File]::WriteAllText($stamp, $PSScriptRoot)
 }
 
-$index = Join-Path $PSScriptRoot "simsar\web\static\index.html"
+$index = Join-Path $PSScriptRoot "simsar_forever\web\static\index.html"
 $sources = Get-ChildItem frontend\src -Recurse -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 if ($Rebuild -or -not (Test-Path $index) -or $sources.LastWriteTime -gt (Get-Item $index).LastWriteTime) {
     if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
@@ -44,4 +44,4 @@ if ($Rebuild -or -not (Test-Path $index) -or $sources.LastWriteTime -gt (Get-Ite
 
 $extra = @()
 if ($NoBrowser) { $extra += "--no-browser" }
-if ($Demo) { & $venvPython -m simsar demo @extra } else { & $venvPython -m simsar serve @extra }
+if ($Demo) { & $venvPython -m simsar_forever demo @extra } else { & $venvPython -m simsar_forever serve @extra }

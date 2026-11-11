@@ -55,7 +55,7 @@ def cmd_install_addon(cfg, args):
         target = addon_install.install(cfg["wow"].get("game_dir"))
     except addon_install.InstallError as e:
         sys.exit(f"Could not install the addon: {e}")
-    print(f"Installed SimsarExport to {target}. Restart the game or /reload, then type /simsar diag.")
+    print(f"Installed SimsarForeverExport to {target}. Restart the game or /reload, then type /sfe diag.")
 
 
 def cmd_demo(cfg, args):
@@ -97,14 +97,14 @@ def main(argv=None):
     p.set_defaults(func=cmd_serve)
     sub.add_parser("refresh", help="download TSM data and import SavedVariables once").set_defaults(func=cmd_refresh)
     sub.add_parser("fetch", help="download TSM data only").set_defaults(func=cmd_fetch)
-    sub.add_parser("import", help="import Auctionator and SimsarExport files now").set_defaults(func=cmd_import)
+    sub.add_parser("import", help="import Auctionator and SimsarForeverExport files now").set_defaults(func=cmd_import)
     p = sub.add_parser("inspect-ato", help="describe an Auctionator.lua file")
     p.add_argument("path", nargs="?")
     p.set_defaults(func=cmd_inspect_ato)
     p = sub.add_parser("find-ato", help="search a folder for Auctionator.lua")
     p.add_argument("root")
     p.set_defaults(func=cmd_find_ato)
-    sub.add_parser("install-addon", help="copy the SimsarExport addon into the game's AddOns folder")         .set_defaults(func=cmd_install_addon)
+    sub.add_parser("install-addon", help="copy the SimsarForeverExport addon into the game's AddOns folder")         .set_defaults(func=cmd_install_addon)
     p = sub.add_parser("demo", help="build a synthetic demo database and serve it")
     p.add_argument("--no-serve", action="store_true")
     p.add_argument("--no-browser", action="store_true")

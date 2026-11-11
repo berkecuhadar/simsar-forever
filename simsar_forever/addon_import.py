@@ -1,4 +1,4 @@
-"""Import SimsarExport.lua written by the in-game addon in addon/SimsarExport."""
+"""Import SimsarForeverExport.lua written by the in-game addon in addon/SimsarForeverExport."""
 
 import statistics
 import time
@@ -52,11 +52,11 @@ def _store_recipe(conn, key, prof, name, product_id, product_name, ymin, ymax, l
 
 def import_file(conn, path):
     saved = lua.load(Path(path))
-    data = saved.get("SimsarExportDB")
+    data = saved.get("SimsarForeverExportDB")
     if not isinstance(data, dict):
-        raise AddonFormatError("SimsarExportDB is missing; has the addon run and have you used /reload?")
+        raise AddonFormatError("SimsarForeverExportDB is missing; has the addon run and have you used /reload?")
     if data.get("version") not in SUPPORTED_VERSIONS:
-        raise AddonFormatError(f"SimsarExport data version {data.get('version')!r} is not supported")
+        raise AddonFormatError(f"SimsarForeverExport data version {data.get('version')!r} is not supported")
 
     names, vendor = {}, {}
     for item_id, info in _items(data.get("items")):

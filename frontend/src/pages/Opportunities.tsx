@@ -78,7 +78,7 @@ export default function Opportunities() {
         </label>
         <span className="spacer" />
         <button onClick={() => setF(DEFAULTS)}>Reset</button>
-        <button onClick={() => downloadCsv("simsar-opportunities", rows, columns)}>Export CSV</button>
+        <button onClick={() => downloadCsv("simsar-forever-opportunities", rows, columns)}>Export CSV</button>
       </div>
       {error && <div className="error-banner">{error}</div>}
       {!data ? <div className="loading">Loading...</div> : (

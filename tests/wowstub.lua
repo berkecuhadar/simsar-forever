@@ -1,4 +1,4 @@
--- Minimal stand-in for the WoW client API, enough to load and drive SimsarExport.lua.
+-- Minimal stand-in for the WoW client API, enough to load and drive SimsarForeverExport.lua.
 -- Each test defines the profession/AH functions it needs before loading the addon.
 
 frames = {}
@@ -80,5 +80,5 @@ local function serialize(v, indent)
 end
 
 function savedVariables()
-  return "SimsarExportDB = " .. serialize(SimsarExportDB) .. "\n"
+  return "SimsarForeverExportDB = " .. serialize(SimsarForeverExportDB) .. "\n"
 end

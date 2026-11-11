@@ -2,8 +2,8 @@
 
 import pytest
 
-from simsar import config, db
-from simsar.analysis import crafts, fees, market, stats
+from simsar_forever import config, db
+from simsar_forever.analysis import crafts, fees, market, stats
 
 NOW = 1_800_000_000
 
@@ -185,7 +185,7 @@ def test_recipe_payback():
 
 
 def test_money_format():
-    from simsar.money import fmt
+    from simsar_forever.money import fmt
     assert fmt(12345) == "1g 23s 45c"
     assert fmt(10000) == "1g"
     assert fmt(10005) == "1g 0s 5c"
@@ -194,7 +194,7 @@ def test_money_format():
 
 
 def test_cheap_flag_and_alert():
-    from simsar.analysis import alerts
+    from simsar_forever.analysis import alerts
     c = cfg()
     conn = _db_with_item(market=2000, min_buyout=1000)
     items = market.build(conn, c, FEES, now=NOW)
