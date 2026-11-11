@@ -30,8 +30,11 @@ if ($installedFrom -ne $PSScriptRoot -or (Get-Item pyproject.toml).LastWriteTime
 
 $index = Join-Path $PSScriptRoot "simsar_forever\web\static\index.html"
 $sources = Get-ChildItem frontend\src -Recurse -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if ($Rebuild -or -not (Test-Path $index) -or $sources.LastWriteTime -gt (Get-Item $index).LastWriteTime) {
-    if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+$haveNpm = [bool](Get-Command npm -ErrorAction SilentlyContinue)
+$stale = (Test-Path $index) -and $sources.LastWriteTime -gt (Get-Item $index).LastWriteTime
+# Release archives ship the UI already built, so Node.js is only needed when there is none.
+if ($Rebuild -or -not (Test-Path $index) -or ($stale -and $haveNpm)) {
+    if (-not $haveNpm) {
         throw "The web UI needs to be built once and Node.js (npm) was not found. Install Node.js 20 or newer."
     }
     Write-Host "Building the web UI..."
