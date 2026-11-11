@@ -1,0 +1,54 @@
+# Copy this file to config.yaml and edit it. config.yaml is ignored by git.
+# Every value here has a built-in default, so you only need the keys you change.
+
+tsm:
+  # Public TSM data: https://public-data.tradeskillmaster.com/{game_type}/{region}/realm/{realm}/items.csv
+  game_type: forever
+  region: eu
+  realm: normal-alliance       # set to null to run in region-only mode
+  check_minutes: 30            # how often the server looks for a new TSM file
+  timeout_seconds: 60
+
+wow:
+  # Folder that contains Interface/ and WTF/. Example: D:/World of Warcraft/_forever_
+  game_dir: null
+  # Folder name under WTF/Account. Leave null if there is only one account.
+  account: null
+  # Key inside AUCTIONATOR_PRICE_DATABASE. Leave null to pick the largest one.
+  auctionator_realm: null
+  watch_seconds: 10            # how often the server checks SavedVariables for changes
+
+economy:
+  # Fallbacks. Measured values from the SimsarExport addon replace these once available.
+  ah_cut: 0.05                 # share of the sale price the auction house keeps (unverified for Forever)
+  deposit_rate: 0.15           # deposit as a share of vendor sell price for one listing (unverified)
+  auction_hours: 24            # listing duration you normally use: 2, 8 or 24
+  # TSM sales volume is region-wide. These turn it into "what you can expect to sell".
+  realm_share: 0.25            # share of region sales that happen on your realm (unverified guess)
+  market_share: 0.20           # share of your realm's sales you expect to win
+  sell_price: avg_sale         # avg_sale (what things actually sold for) or market (TSM market value)
+  max_relists: 5               # cap on the expected number of listings per sale
+
+analysis:
+  history_days: 14             # window for min/max, volatility and trend
+  min_points_volatility: 6     # fewer price points than this and volatility is "low confidence"
+  min_days_trend: 4            # fewer distinct days than this and no trend is shown
+  good_margin: 0.15            # net margin at or above this counts as "profitable"
+  fast_sales_per_day: 5        # expected sales per day (after shares) at or above this counts as "fast"
+  bubble_ratio: 1.6            # market value this many times above historical is flagged as a bubble
+  stale_hours: 12              # TSM data older than this is flagged as stale
+  live_price_hours: 72         # Auctionator prices older than this are not used as "price now"
+
+alerts:
+  enabled: true
+  below_historical: 0.25       # alert when a tracked item is this far below its historical price
+  min_craft_profit_gold: 5     # alert when a craft makes at least this much per craft
+  min_sales_per_day: 1         # ignore alerts on items that barely sell
+
+storage:
+  db_path: data/simsar.db
+  retain_days: 180
+
+server:
+  host: 127.0.0.1
+  port: 8765
