@@ -160,6 +160,30 @@ export interface Status {
   recipes: number;
   built_at: number;
   build_seconds: number;
+  configured: boolean;
+  realm_label: string;
+}
+
+export interface Install {
+  path: string;
+  exists: boolean;
+  is_forever: boolean;
+  flavor: string | null;
+  has_wtf: boolean;
+  auctionator_version: string | null;
+  simsar_export_installed: boolean;
+  accounts: { name: string; has_auctionator: boolean; auctionator_mtime: number | null; has_simsar_export: boolean }[];
+  auctionator_realms?: { key: string; items: number }[];
+}
+
+export interface SetupInfo {
+  config_exists: boolean;
+  current: { region: string; realm: string | null; game_dir: string | null; account: string | null;
+    auctionator_realm: string | null; professions: string[] };
+  catalog: { regions: { key: string; label: string; realms: string[] }[]; realm_types: Record<string, string>;
+    factions: Record<string, string> };
+  professions: string[];
+  installs: Install[];
 }
 
 export interface Alert {
@@ -200,4 +224,15 @@ export const api = {
   alerts: () => get<Alert[]>("/api/alerts"),
   markSeen: () => fetch("/api/alerts/seen", { method: "POST" }),
   refresh: () => fetch("/api/refresh", { method: "POST" }).then((r) => r.json()),
+  setup: () => get<SetupInfo>("/api/setup"),
+  setupInspect: (path: string, account?: string) =>
+    get<Install>(`/api/setup/inspect?path=${encodeURIComponent(path)}${account ? `&account=${encodeURIComponent(account)}` : ""}`),
+  setupCheck: (region: string, realm: string | null) =>
+    get<Record<string, { ok: boolean; status: number | null; rate_limited?: boolean }>>(
+      `/api/setup/check?region=${region}${realm ? `&realm=${realm}` : ""}`),
+  setupSave: async (body: object) => {
+    const r = await fetch("/api/setup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error((await r.json()).detail ?? `HTTP ${r.status}`);
+    return r.json();
+  },
 };

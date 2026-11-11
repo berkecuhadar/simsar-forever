@@ -67,17 +67,19 @@ footer { color: var(--muted); font-size: 12px; text-align: center; padding: 16px
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--line);
 }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; white-space: nowrap; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-text .small { font-weight: 500; }
 .logo {
   width: 28px; height: 28px; border-radius: 50%;
   display: grid; place-items: center;
   background: var(--gold); color: #231a05; font-family: Georgia, serif;
 }
-.topbar nav { display: flex; gap: 4px; flex-wrap: wrap; }
-.topbar nav a { color: var(--muted); padding: 6px 10px; border-radius: 7px; position: relative; }
+.topbar nav { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; min-width: 0; }
+.topbar nav a { color: var(--muted); padding: 6px 9px; border-radius: 7px; position: relative; white-space: nowrap; }
 .topbar nav a:hover { color: var(--text); text-decoration: none; background: var(--panel); }
 .topbar nav a.active { color: var(--gold); background: var(--panel); }
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .chip { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
 .alert-chip { color: var(--gold); border-color: var(--gold); }
 
@@ -233,3 +235,10 @@ table.mini .left { text-align: left; }
 .alerts li.unseen { border-left: 3px solid var(--gold); padding-left: 8px; }
 .empty-state { border-style: dashed; }
 .check { cursor: pointer; }
+button.primary { background: var(--gold); color: #231a05; border-color: var(--gold); font-weight: 600; padding: 8px 18px; }
+button.primary:hover:not(:disabled) { filter: brightness(1.08); }
+.installs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.install { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.install.selected { border-color: var(--gold); background: rgba(227, 179, 65, 0.06); }
+.prof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 14px; }
+.prof-grid label { display: inline-flex; gap: 6px; align-items: center; }

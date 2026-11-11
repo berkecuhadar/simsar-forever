@@ -37,10 +37,6 @@ if ($Rebuild -or -not (Test-Path $index) -or $sources.LastWriteTime -gt (Get-Ite
     if (-not (Test-Path $index)) { throw "UI build failed" }
 }
 
-if (-not (Test-Path config.yaml)) {
-    Copy-Item config.example.yaml config.yaml
-    Write-Host "Created config.yaml. Set wow.game_dir in it so Simsar Forever can read your Auctionator scans."
-}
 
 $simsar = Join-Path $PSScriptRoot ".venv\Scripts\simsar.exe"
 $extra = @()

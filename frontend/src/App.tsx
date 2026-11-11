@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { api } from "./api";
 import { useApp } from "./context";
 import { ago } from "./format";
@@ -10,6 +10,7 @@ import ItemPage from "./pages/ItemPage";
 import MarketMap from "./pages/MarketMap";
 import Opportunities from "./pages/Opportunities";
 import Overview from "./pages/Overview";
+import Setup from "./pages/Setup";
 import StatusPage from "./pages/StatusPage";
 
 const NAV = [
@@ -20,6 +21,7 @@ const NAV = [
   ["/map", "Market map"],
   ["/status", "Data status"],
   ["/glossary", "Glossary"],
+  ["/setup", "Settings"],
 ] as const;
 
 function Header() {
@@ -42,8 +44,10 @@ function Header() {
     <header className="topbar">
       <div className="brand">
         <span className="logo">S</span>
-        <span>Simsar Forever</span>
-        <span className="muted small">WoW Forever market</span>
+        <span className="brand-text">
+          <span>Simsar Forever</span>
+          <span className="muted small">{status?.realm_label ?? "WoW Forever market"}</span>
+        </span>
       </div>
       <nav>
         {NAV.map(([to, label]) => (
@@ -84,9 +88,20 @@ function Banners() {
   );
 }
 
+function FirstRunRedirect() {
+  const { status } = useApp();
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    if (status && !status.configured && location.pathname !== "/setup") navigate("/setup");
+  }, [status, location.pathname, navigate]);
+  return null;
+}
+
 export default function App() {
   return (
     <div className="app">
+      <FirstRunRedirect />
       <Banners />
       <Header />
       <main>
@@ -99,6 +114,7 @@ export default function App() {
           <Route path="/status" element={<StatusPage />} />
           <Route path="/glossary" element={<Glossary />} />
           <Route path="/item/:id" element={<ItemPage />} />
+          <Route path="/setup" element={<Setup />} />
         </Routes>
       </main>
       <footer>
