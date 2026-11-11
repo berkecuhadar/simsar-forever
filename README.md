@@ -170,7 +170,7 @@ The browser test uses Edge or Chrome if one is installed and is skipped otherwis
 ## Building a release
 
 ```powershell
-.venv\Scripts\python scriptsuild_release.py --test
+.venv\Scripts\python scripts\build_release.py --test
 ```
 
 Writes `dist/simsar-forever-<version>.zip` (app with the built UI), `dist/SimsarForeverExport-<version>.zip`
