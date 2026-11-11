@@ -19,7 +19,7 @@ if (-not (Test-Path $venvPython)) {
 # remembers the old path).
 $stamp = Join-Path $PSScriptRoot ".venv\.simsar-installed"
 $installedFrom = ""
-if (Test-Path $stamp) { $installedFrom = (Get-Content $stamp -Raw).Trim() }
+if (Test-Path $stamp) { $installedFrom = "$(Get-Content $stamp -Raw)".Trim() }
 if ($installedFrom -ne $PSScriptRoot -or (Get-Item pyproject.toml).LastWriteTime -gt (Get-Item $stamp).LastWriteTime) {
     Write-Host "Installing Python packages..."
     & $venvPython -m pip install --quiet --upgrade pip
