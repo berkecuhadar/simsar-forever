@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from .. import __version__, addon_install, config, db, discover, forever, refresh, tsm
 from .. import groups as groupmod
 from ..analysis import crafts as craftmod
-from ..analysis import econometrics, explain, market
+from ..analysis import econometrics, explain, inventory, market
 from ..analysis.engine import Engine
 from . import status as statusmod
 
@@ -26,7 +26,7 @@ ITEM_LIST_FIELDS = (
     "sell_ref", "net_sell", "sale_rate", "sold_per_day_region", "my_sales_per_day", "available",
     "turnover_day", "income_day", "flip_profit", "flip_margin", "flip_profit_day", "volatility", "trend",
     "reference", "disc_ref", "disc_hist", "period_min", "period_max", "n_points", "confidence", "score",
-    "label", "flags", "deposit", "vendor_sell", "data_age_h",
+    "label", "flags", "vendor_sell", "data_age_h",
 )
 
 
@@ -159,6 +159,10 @@ def create_app(cfg, background=True):
             rows = [r for r in rows if r["profession"].lower() == profession.lower()]
         return rows
 
+    @app.get("/api/inventory")
+    def inventory_view():
+        return inventory.build(rt.conn(), rt.engine.result())
+
     @app.get("/api/meta")
     def meta():
         return {"labels": market.LABELS, "flags": market.FLAGS, "verdicts": craftmod.VERDICTS,
@@ -199,6 +203,7 @@ def create_app(cfg, background=True):
                 "game_dir": game_dir, "account": c["wow"].get("account"),
                 "auctionator_realm": c["wow"].get("auctionator_realm"),
                 "professions": c["player"]["professions"],
+                "auction_house": c["economy"]["auction_house"],
             },
             "catalog": forever.catalog(),
             "professions": sorted({g["profession"] for g in rt.engine.groups if g["role"] != "recipe"}),
@@ -251,6 +256,7 @@ def create_app(cfg, background=True):
             "wow": {"game_dir": body.get("game_dir") or None, "account": body.get("account") or None,
                     "auctionator_realm": body.get("auctionator_realm") or None},
             "player": {"professions": list(body.get("professions") or [])},
+            "economy": {"auction_house": body.get("auction_house") or "faction"},
         }
         try:
             config.save(rt.cfg["_path"], updates)

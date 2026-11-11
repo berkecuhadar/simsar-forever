@@ -24,7 +24,6 @@ FLAGS = {
     "possible_misprice": "Cheapest listing is far below market value; may be a mistake or bait",
     "not_live": "No recent scan price; using TSM data",
     "low_confidence": "Too few price points for volatility",
-    "no_vendor_price": "Vendor price unknown, deposit not included",
 }
 
 
@@ -141,11 +140,8 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
         realm_spd = spd_region * realm_share if spd_region is not None else None
         my_spd = realm_spd * market_share if realm_spd is not None else None
 
-        dep = feemod.deposit(vendor, fees)
-        if dep is None:
-            flags.append("no_vendor_price")
-        net_sell = feemod.net_per_sale(sell_price, vendor, sale_rate, fees)
-        net_ref = feemod.net_per_sale(sell_ref, vendor, sale_rate, fees)
+        net_sell = feemod.net_per_sale(sell_price, fees)
+        net_ref = feemod.net_per_sale(sell_ref, fees)
 
         flip_profit = net_ref - price_now if net_ref is not None and price_now else None
         flip_margin = flip_profit / price_now if flip_profit is not None else None
@@ -216,8 +212,6 @@ def build(conn, cfg, fees, groups=None, recipe_items=None, now=None):
             "sold_per_day_realm": realm_spd,
             "my_sales_per_day": my_spd,
             "available": available.get(item_id),
-            "deposit": dep,
-            "listings_per_sale": feemod.listings_per_sale(sale_rate, fees),
             "net_sell": net_sell,
             "turnover_day": realm_spd * sell_ref if realm_spd is not None and sell_ref else None,
             "income_day": max(net_sell, 0) * my_spd if net_sell is not None and my_spd is not None else None,

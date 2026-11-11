@@ -14,29 +14,22 @@ def cfg(**eco):
     return c
 
 
-FEES = fees.Fees(ah_cut=0.05, deposit_rate=0.15, auction_hours=24, max_relists=5)
-
-
-def test_listings_per_sale():
-    assert fees.listings_per_sale(0.25, FEES) == 4
-    assert fees.listings_per_sale(0.1, FEES) == 5      # capped
-    assert fees.listings_per_sale(None, FEES) == 5
-    assert fees.listings_per_sale(1.0, FEES) == 1
+FEES = fees.Fees(ah_cut=0.05)
 
 
 def test_net_per_sale():
-    # 1000 * 0.95 = 950; deposit 100 * 0.15 = 15, lost on 3 of 4 listings = 45 -> 905
-    assert fees.net_per_sale(1000, 100, 0.25, FEES) == pytest.approx(905)
-    # Unknown vendor price: no deposit term
-    assert fees.net_per_sale(1000, None, 0.25, FEES) == pytest.approx(950)
-    assert fees.net_per_sale(None, 100, 0.25, FEES) is None
+    assert fees.net_per_sale(1000, FEES) == pytest.approx(950)
+    assert fees.net_per_sale(None, FEES) is None
 
 
-def test_fees_prefer_measured_values():
-    f = fees.from_config(cfg(), {"ah_cut": 0.15, "ah_cut_samples": 3,
-                                 "deposit_rates": {24: {"rate": 0.3, "samples": 2}}})
-    assert (f.ah_cut, f.deposit_rate) == (0.15, 0.3)
-    assert f.cut_source.startswith("measured")
+@pytest.mark.parametrize("house, cut", [("faction", 0.05), ("neutral", 0.15)])
+def test_cut_follows_the_auction_house(house, cut):
+    f = fees.from_config(cfg(auction_house=house))
+    assert (f.ah_cut, f.auction_house) == (cut, house)
+
+
+def test_configured_cut_overrides_the_house_rule():
+    assert fees.from_config(cfg(ah_cut=0.1)).ah_cut == 0.1
 
 
 def test_robust_stats_ignore_outliers():
@@ -76,16 +69,15 @@ def test_market_row_hand_computed():
     assert it["price_now"] == 1000 and it["price_src"] == "tsm_min_buyout"
     assert it["sell_ref"] == 1150                       # min(avg_sale 1150, realm market 1200)
     assert it["sell_price"] == 1000                     # must match the cheapest listing to sell now
-    assert it["listings_per_sale"] == 2                 # sale rate 0.5
-    assert it["net_sell"] == pytest.approx(935)         # 1000*0.95 - 15*(2-1)
-    assert it["flip_profit"] == pytest.approx(77.5)     # 1150*0.95 - 15 - 1000
+    assert it["net_sell"] == pytest.approx(950)         # 1000 * 0.95
+    assert it["flip_profit"] == pytest.approx(92.5)     # 1150 * 0.95 - 1000
     assert it["my_sales_per_day"] == pytest.approx(5)   # 100 * 0.25 * 0.2
-    assert it["flip_profit_day"] == pytest.approx(387.5)
-    assert it["income_day"] == pytest.approx(4675)      # 935 * 5
+    assert it["flip_profit_day"] == pytest.approx(462.5)
+    assert it["income_day"] == pytest.approx(4750)      # 950 * 5
     assert it["turnover_day"] == pytest.approx(28750)   # 25 * 1150
     assert it["disc_hist"] == pytest.approx(1000 / 1100 - 1)
     assert it["reference"] == 1200 and it["disc_ref"] == pytest.approx(1000 / 1200 - 1)
-    assert it["label"] == "fast_thin"                   # 5/day is fast, 7.75% < 15% margin
+    assert it["label"] == "fast_thin"                   # 5/day is fast, 9.25% < 15% margin
     assert "not_live" not in it["flags"]                # TSM scan is an hour old
 
 
@@ -226,21 +218,24 @@ def test_vendor_reagent_is_used_when_cheaper():
     assert row["cost_buy"] == 210
 
 
-def test_deposit_floor_from_real_forever_posts():
-    from simsar_forever.addon_import import deposit_model
-    # Three posts seen on WoW Forever (November 2026): 8h, vendor price 6c, different quantities.
-    real = [{"deposit": 100, "quantity": 3, "vendor": 6}, {"deposit": 100, "quantity": 5, "vendor": 6},
-            {"deposit": 100, "quantity": 4, "vendor": 6}]
-    assert deposit_model(real) == {"rate": None, "min_deposit": 100, "samples": 3}
-    more = real + [{"deposit": 3000, "quantity": 1, "vendor": 10000}]
-    assert deposit_model(more)["rate"] == pytest.approx(0.3)
-
-
-def test_fees_use_the_posted_duration_and_floor():
-    c = cfg(auction_hours=24, deposit_rate=0.15, min_deposit=0, listing_size=10)
-    f = fees.from_config(c, {"deposit_rates": {8: {"rate": None, "min_deposit": 100, "samples": 3}}})
-    assert (f.auction_hours, f.min_deposit, f.deposit_rate) == (8, 100, 0.15)
-    assert "minimum" in f.deposit_source
-    assert fees.deposit(6, f) == 10                     # 1 silver spread over 10 units beats 15% of 6c
-    assert fees.deposit(10000, f) == 1500               # expensive items: the rate dominates
-    assert fees.deposit(None, f) == 10
+def test_inventory_values_at_todays_prices():
+    from simsar_forever.analysis import inventory
+    conn = _db_with_item()                                   # Light Leather: you keep 950 per sale
+    conn.execute("INSERT INTO items(item_id, name, vendor_sell) VALUES(2, 'Hearthstone', 0)")
+    conn.execute("INSERT INTO items(item_id, name, vendor_sell) VALUES(3, 'Grey Junk', 40)")
+    conn.execute("INSERT INTO characters VALUES('Tester-Realm', 'Tester', 'Realm', 'HUNTER', 'Alliance', 5000, 1, 2)")
+    conn.executemany("INSERT INTO inventory VALUES('Tester-Realm', ?, ?, ?, ?)",
+                     [("bags", 1, 10, 0), ("bank", 1, 5, 2), ("bags", 2, 1, 1), ("bags", 3, 3, 0)])
+    items = market.build(conn, cfg(), FEES, now=NOW)
+    result = {"by_id": {i["item_id"]: i for i in items}, "fees": FEES}
+    inv = inventory.build(conn, result)
+    rows = {r["item_id"]: r for r in inv["items"]}
+    leather = rows[1]
+    assert (leather["bags"], leather["bank"], leather["bound"]) == (10, 5, 2)
+    assert leather["ah_value"] == pytest.approx(13 * 950)    # bound units cannot be auctioned
+    assert leather["value"] == pytest.approx(13 * 950 + 2 * 100)
+    assert leather["days_to_sell"] == pytest.approx(13 / 5)
+    assert rows[3]["sell_where"] == "vendor" and rows[3]["value"] == 120
+    assert rows[2]["sell_where"] == "bound" and rows[2]["value"] == 0
+    [char] = inv["characters"]
+    assert char["money"] == 5000 and char["value"] == pytest.approx(13 * 950 + 200 + 120)

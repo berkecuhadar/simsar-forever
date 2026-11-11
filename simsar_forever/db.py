@@ -3,7 +3,7 @@ import sqlite3
 import time
 from pathlib import Path
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS items(
@@ -79,13 +79,6 @@ CREATE TABLE IF NOT EXISTS ah_invoices(
   PRIMARY KEY(seen_at, item_name, bid)
 );
 
--- Deposits quoted by the game when posting, captured by the addon.
-CREATE TABLE IF NOT EXISTS ah_deposits(
-  seen_at INTEGER, item_id INTEGER, quantity INTEGER, hours INTEGER,
-  deposit INTEGER, vendor_sell INTEGER,
-  PRIMARY KEY(seen_at, item_id)
-);
-
 CREATE TABLE IF NOT EXISTS fetch_log(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   source TEXT, at INTEGER, ok INTEGER, details TEXT
@@ -96,6 +89,18 @@ CREATE TABLE IF NOT EXISTS alerts(
   created_at INTEGER, kind TEXT, item_id INTEGER, dedupe_key TEXT UNIQUE,
   title TEXT, message TEXT, seen INTEGER DEFAULT 0
 );
+
+-- Characters and what they carry, from SimsarForeverExport. The bank is only known from the last
+-- time it was opened.
+CREATE TABLE IF NOT EXISTS characters(
+  char_key TEXT PRIMARY KEY, name TEXT, realm TEXT, class TEXT, faction TEXT,
+  money INTEGER, bags_at INTEGER, bank_at INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS inventory(
+  char_key TEXT, location TEXT, item_id INTEGER, count INTEGER, bound INTEGER,
+  PRIMARY KEY(char_key, location, item_id)
+) WITHOUT ROWID;
 
 CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT);
 """
@@ -117,8 +122,9 @@ def connect(path):
 
 def migrate(conn):
     cols = {r[1] for r in conn.execute("PRAGMA table_info(items)")}
-    if "vendor_buy" not in cols:
-        conn.execute("ALTER TABLE items ADD COLUMN vendor_buy REAL")
+    for col, kind in (("vendor_buy", "REAL"), ("quality", "INTEGER"), ("icon_id", "INTEGER")):
+        if col not in cols:
+            conn.execute(f"ALTER TABLE items ADD COLUMN {col} {kind}")
     conn.commit()
 
 
@@ -146,6 +152,16 @@ def upsert_names(conn, names, now=None):
         "ON CONFLICT(item_id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at "
         "WHERE excluded.name IS NOT NULL AND excluded.name != ''",
         [(i, n, now) for i, n in names.items() if n],
+    )
+
+
+def upsert_item_looks(conn, looks):
+    """looks: {item_id: (quality, icon_id)}"""
+    conn.executemany(
+        "INSERT INTO items(item_id, quality, icon_id) VALUES(?, ?, ?) "
+        "ON CONFLICT(item_id) DO UPDATE SET quality = COALESCE(excluded.quality, items.quality), "
+        "icon_id = COALESCE(excluded.icon_id, items.icon_id)",
+        [(i, q, ic) for i, (q, ic) in looks.items()],
     )
 
 

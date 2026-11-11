@@ -20,7 +20,6 @@ def profession_name(raw):
     return raw or "Unknown"
 
 
-DURATIONS = (2, 8, 24)
 
 
 class AddonFormatError(ValueError):
@@ -71,15 +70,18 @@ def import_file(conn, path):
     if data.get("version") not in SUPPORTED_VERSIONS:
         raise AddonFormatError(f"SimsarForeverExport data version {data.get('version')!r} is not supported")
 
-    names, vendor = {}, {}
+    names, vendor, looks = {}, {}, {}
     for item_id, info in _items(data.get("items")):
         if isinstance(info, dict) and _int(item_id):
             if info.get("name"):
                 names[int(item_id)] = info["name"]
             if _int(info.get("vendor")) is not None:
                 vendor[int(item_id)] = int(info["vendor"])
+            if _int(info.get("quality")) is not None or _int(info.get("icon")) is not None:
+                looks[int(item_id)] = (_int(info.get("quality")), _int(info.get("icon")))
     db.upsert_names(conn, names)
     db.upsert_vendor_prices(conn, vendor)
+    db.upsert_item_looks(conn, looks)
     merchant = {}
     for item_id, m in _items(data.get("merchant")):
         if isinstance(m, dict) and _int(item_id) and isinstance(m.get("price"), (int, float)) and m["price"] > 0:
@@ -120,26 +122,16 @@ def import_file(conn, path):
                              _int(inv.get("consignment"))))
     conn.executemany("INSERT OR IGNORE INTO ah_invoices VALUES(?,?,?,?,?,?,?)", invoices)
 
-    by_name = {n.lower(): i for i, n in conn.execute("SELECT item_id, name FROM items WHERE name IS NOT NULL")}
-    deposits = []
-    for _, d in _items(data.get("deposits")):
-        if not isinstance(d, dict):
-            continue
-        item = d.get("item")
-        item_id = _int(item) if not isinstance(item, str) else by_name.get(item.lower())
-        if item_id and _int(d.get("deposit")) is not None:
-            deposits.append((_int(d.get("seen")) or 0, item_id, _int(d.get("quantity")) or 1,
-                             _int(d.get("hours")), _int(d["deposit"]), _int(d.get("vendor"))))
-    conn.executemany("INSERT OR IGNORE INTO ah_deposits VALUES(?,?,?,?,?,?)", deposits)
+    characters = import_characters(conn, data.get("characters"))
     conn.commit()
 
     return {
         "recipes": recipes,
         "recipe_items": recipe_items,
         "invoices": len(invoices),
-        "deposits": len(deposits),
         "items": len(names),
         "merchant_prices": len(merchant),
+        "characters": characters,
         "build": data.get("build"),
         "realm": data.get("realm"),
         "faction": data.get("faction"),
@@ -147,36 +139,37 @@ def import_file(conn, path):
     }
 
 
-def deposit_model(rows):
-    """Fit deposit = max(floor, rate * vendor_price * quantity) to observed posts.
-
-    On WoW Forever cheap items cost a flat 1 silver per listing whatever the quantity (seen in
-    November 2026), so several identical smallest deposits are read as a floor and only posts above
-    it are used for the rate."""
-    deposits = [r["deposit"] for r in rows]
-    low = min(deposits)
-    at_floor = [r for r in rows if r["deposit"] == low]
-    floor = low if len(at_floor) >= 2 and len({(r["vendor"], r["quantity"]) for r in at_floor}) >= 2 else None
-    above = [r for r in rows if floor is None or r["deposit"] > floor]
-    ratios = [r["deposit"] / (r["vendor"] * r["quantity"]) for r in above if r["vendor"] and r["quantity"]]
-    return {"rate": statistics.median(ratios) if ratios else None, "min_deposit": floor,
-            "samples": len(rows)}
+def import_characters(conn, chars):
+    count = 0
+    for key, c in _items(chars):
+        if not isinstance(c, dict):
+            continue
+        key = str(key)
+        conn.execute(
+            "INSERT INTO characters VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(char_key) DO UPDATE SET "
+            "name = excluded.name, realm = excluded.realm, class = excluded.class, faction = excluded.faction, "
+            "money = excluded.money, bags_at = excluded.bags_at, bank_at = excluded.bank_at",
+            (key, c.get("name"), c.get("realm"), c.get("class"), c.get("faction"), _int(c.get("money")),
+             _int(c.get("bagsTime")), _int(c.get("bankTime"))))
+        for location in ("bags", "bank"):
+            items = c.get(location)
+            if items is None:
+                continue  # never seen; keep whatever was stored before
+            conn.execute("DELETE FROM inventory WHERE char_key = ? AND location = ?", (key, location))
+            rows = []
+            for item_id, e in _items(items):
+                if _int(item_id) and isinstance(e, dict) and _int(e.get("count")):
+                    rows.append((key, location, int(item_id), int(e["count"]), _int(e.get("bound")) or 0))
+            conn.executemany("INSERT INTO inventory VALUES(?,?,?,?,?)", rows)
+        count += 1
+    return count
 
 
 def measured_fees(conn):
-    """AH cut and deposit rates observed in game. Values are None until there is data."""
+    """Auction house cut seen in your sale mails, for comparison with the configured cut."""
     cuts = [r["consignment"] / r["bid"] for r in conn.execute(
         "SELECT bid, consignment FROM ah_invoices WHERE bid > 0 AND consignment IS NOT NULL")]
-    rates = {}
-    for hours in DURATIONS:
-        rows = [r for r in conn.execute(
-            "SELECT d.deposit, d.quantity, COALESCE(d.vendor_sell, i.vendor_sell) AS vendor "
-            "FROM ah_deposits d LEFT JOIN items i ON i.item_id = d.item_id WHERE d.hours = ?", (hours,))
-            if r["deposit"] is not None]
-        if rows:
-            rates[hours] = deposit_model(rows)
     return {
         "ah_cut": round(statistics.median(cuts), 4) if cuts else None,
         "ah_cut_samples": len(cuts),
-        "deposit_rates": rates,
     }

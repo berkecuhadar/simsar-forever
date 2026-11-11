@@ -15,6 +15,9 @@ function time() return now end
 function GetBuildInfo() return "1.60.1", "60001", "Nov 1 2026", 16001 end
 function GetRealmName() return "Normal" end
 function UnitFactionGroup() return "Alliance" end
+function UnitName() return "Tester" end
+function UnitClass() return "Hunter", "HUNTER" end
+function GetMoney() return 123456 end
 WorldFrame = {}
 SlashCmdList = {}
 C_Timer = { After = function(_, fn) fn() end }
@@ -23,7 +26,7 @@ items = {}
 function GetItemInfo(id)
   local i = items[id]
   if not i then return nil end
-  return i.name, "link", 1, 1, 1, "Type", "Sub", 20, "", "", i.vendor, i.class
+  return i.name, "link", i.quality or 1, 1, 1, "Type", "Sub", 20, "", i.icon, i.vendor, i.class
 end
 
 local function newFrame(name)

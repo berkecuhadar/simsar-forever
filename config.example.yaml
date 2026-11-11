@@ -28,17 +28,13 @@ player:
   professions: []
 
 economy:
-  # Fallbacks. Measured values from the SimsarForeverExport addon replace these once available.
-  ah_cut: 0.05                 # share of the sale price the auction house keeps (unverified for Forever)
-  deposit_rate: 0.15           # deposit as a share of vendor sell price for one listing (unverified)
-  min_deposit: 100             # smallest deposit per listing in copper; 1 silver seen on Forever
-  listing_size: 10             # units you usually put in one listing (spreads the minimum deposit)
-  auction_hours: 24            # listing duration you normally use: 2, 8 or 24
+  # Alliance and Horde auction houses keep 5% of each sale, the neutral one 15%.
+  auction_house: faction       # faction or neutral
+  ah_cut: null                 # set a number such as 0.05 only to override the rule above
   # TSM sales volume is region-wide. These turn it into "what you can expect to sell".
   realm_share: 0.25            # share of region sales that happen on your realm (unverified guess)
   market_share: 0.20           # share of your realm's sales you expect to win
   sell_price: avg_sale         # avg_sale (what things actually sold for) or market (TSM market value)
-  max_relists: 5               # cap on the expected number of listings per sale
 
 analysis:
   history_days: 14             # window for min/max, volatility and trend

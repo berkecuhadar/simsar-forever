@@ -82,7 +82,7 @@ def cmd_top(cfg, args):
         print(f"{i['name'][:34]:34} {i['group'] or '-':15} now {fmt(i['price_now']):>14}  "
               f"{key} {fmt(i[key]):>14}/day  {i['label']}")
     print(f"\nFees: cut {result['fees'].ah_cut:.1%} ({result['fees'].cut_source}), "
-          f"deposit rate {result['fees'].deposit_rate:.0%} ({result['fees'].deposit_source}). "
+
           f"Built in {result['build_seconds']}s.")
 
 

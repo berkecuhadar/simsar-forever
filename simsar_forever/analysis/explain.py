@@ -46,13 +46,16 @@ def item(it, fees, cfg):
 
     sr = it.get("sale_rate")
     if sr is not None:
-        s.append(f"Sale rate {sr:.0%}: about {it['listings_per_sale']:.1f} listings per sale. "
-                 "Each listing that expires loses its deposit, which is already subtracted below.")
+        s.append(f"Sale rate {sr:.0%}: about that share of listings actually sells across the region"
+                 f"{'; expect to relist often' if sr < 0.3 else ''}.")
 
     net = it.get("net_sell")
     if net is not None and it.get("sell_price"):
         s.append(f"Selling one at {fmt(it['sell_price'])} leaves you {fmt(net)} after the "
-                 f"{fees.ah_cut:.0%} auction cut and expected deposit losses.")
+                 f"{fees.ah_cut:.0%} cut of the {fees.auction_house} auction house.")
+        if fees.auction_house == "faction":
+            s.append(f"On the neutral auction house the cut is 15%, which would leave "
+                     f"{fmt(it['sell_price'] * 0.85)}.")
 
     fp = it.get("flip_profit")
     if fp is not None:

@@ -92,13 +92,14 @@ def build(cfg, conn, result, now=None):
             warn("info", "SimsarForeverExport is installed but has not written any data yet. Log in, open your "
                          "profession windows, then /reload.")
         else:
-            warn("info", "Install the SimsarForeverExport addon (run: simsar-forever install-addon) to import your recipes, "
-                         "vendor prices and the real AH cut and deposits.")
+            warn("info", "Install the SimsarForeverExport addon (run: simsar-forever install-addon) to import your "
+                         "recipes, vendor prices, bags and bank.")
 
     fees = result["fees"]
-    if fees.cut_source == "config" and not demo:
-        warn("info", f"The auction house cut is assumed to be {fees.ah_cut:.0%}. It will be measured from your "
-                     "sale mails once the SimsarForeverExport addon has seen some.")
+    seen = result["measured_fees"].get("ah_cut")
+    if seen is not None and abs(seen - fees.ah_cut) > 0.01 and not demo:
+        warn("warn", f"Your sale mails show a {seen:.0%} cut, but Simsar Forever uses {fees.ah_cut:.0%} for the "
+                     f"{fees.auction_house} auction house. Check economy.auction_house on the settings page.")
     if not result["crafts"] and not demo:
         warn("info", "No recipes yet. Open your profession windows in game with SimsarForeverExport installed, "
                      "then /reload.")
@@ -110,10 +111,8 @@ def build(cfg, conn, result, now=None):
         "now": now,
         "sources": sources,
         "warnings": warnings,
-        "fees": {"ah_cut": fees.ah_cut, "cut_source": fees.cut_source, "deposit_rate": fees.deposit_rate,
-                 "deposit_source": fees.deposit_source, "auction_hours": fees.auction_hours,
-                 "max_relists": fees.max_relists, "min_deposit": fees.min_deposit,
-                 "listing_size": fees.listing_size},
+        "fees": {"ah_cut": fees.ah_cut, "cut_source": fees.cut_source, "auction_house": fees.auction_house,
+                 "measured_cut": seen, "measured_samples": result["measured_fees"].get("ah_cut_samples", 0)},
         "assumptions": {
             "realm_share": eco["realm_share"], "market_share": eco["market_share"],
             "sell_price": eco["sell_price"], "history_days": cfg["analysis"]["history_days"],

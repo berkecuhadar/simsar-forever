@@ -24,15 +24,11 @@ DEFAULTS = {
         "professions": [],
     },
     "economy": {
-        "ah_cut": 0.05,
-        "deposit_rate": 0.15,
-        "min_deposit": 100,
-        "listing_size": 10,
-        "auction_hours": 24,
+        "auction_house": "faction",
+        "ah_cut": None,
         "realm_share": 0.25,
         "market_share": 0.20,
         "sell_price": "avg_sale",
-        "max_relists": 5,
     },
     "analysis": {
         "history_days": 14,
@@ -115,16 +111,14 @@ def save(path, updates):
 
 def validate(cfg):
     eco = cfg["economy"]
-    for key in ("ah_cut", "deposit_rate", "realm_share", "market_share"):
+    if eco["auction_house"] not in ("faction", "neutral"):
+        raise ConfigError("economy.auction_house must be 'faction' or 'neutral'")
+    if eco["ah_cut"] is not None and not (isinstance(eco["ah_cut"], (int, float)) and 0 <= eco["ah_cut"] <= 1):
+        raise ConfigError("economy.ah_cut must be empty or a number between 0 and 1")
+    for key in ("realm_share", "market_share"):
         v = eco[key]
         if not isinstance(v, (int, float)) or not 0 <= v <= 1:
             raise ConfigError(f"economy.{key} must be a number between 0 and 1, got {v!r}")
-    if not isinstance(eco["min_deposit"], (int, float)) or eco["min_deposit"] < 0:
-        raise ConfigError("economy.min_deposit must be a number of copper, 0 or more")
-    if not isinstance(eco["listing_size"], (int, float)) or eco["listing_size"] < 1:
-        raise ConfigError("economy.listing_size must be 1 or more")
-    if eco["auction_hours"] not in (2, 8, 24):
-        raise ConfigError("economy.auction_hours must be 2, 8 or 24")
     if eco["sell_price"] not in ("avg_sale", "market"):
         raise ConfigError("economy.sell_price must be 'avg_sale' or 'market'")
     if cfg["analysis"]["reference_price"] not in ("market", "historical"):

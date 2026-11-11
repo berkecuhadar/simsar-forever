@@ -145,19 +145,36 @@ def test_invoices_are_deduplicated_and_give_ah_cut(tmp_path):
     assert addon_import.measured_fees(conn)["ah_cut"] == 0.05
 
 
-def test_legacy_posting_records_deposit(tmp_path):
-    api = """
-    items[2318] = { name = "Light Leather", vendor = 15 }
-    function GetAuctionSellItemInfo() return "Light Leather", "tex", 20, 1, true, 300, 15, 20, 20, 2318 end
-    function CalculateAuctionDeposit(runTime, stackSize, numStacks) return ({ 1, 2, 6 })[runTime] * stackSize * numStacks end
-    function PostAuction() end
-    """
-    lua = run(api, 'fire("NEW_AUCTION_UPDATE"); PostAuction(100, 200, 3, 20, 1)')
+BAGS_AND_BANK = """
+items[2318] = { name = "Light Leather", vendor = 15, icon = 134252, quality = 1 }
+items[6948] = { name = "Hearthstone", vendor = 0 }
+local slots = {
+  [0] = { { itemID = 2318, stackCount = 20 }, { itemID = 6948, stackCount = 1, isBound = true } },
+  [1] = { { itemID = 2318, stackCount = 5 } },
+  [-1] = { { itemID = 2318, stackCount = 40 } },
+}
+C_Container = {
+  GetContainerNumSlots = function(bag) return slots[bag] and #slots[bag] or 0 end,
+  GetContainerItemInfo = function(bag, slot) return slots[bag] and slots[bag][slot] end,
+}
+"""
+
+
+def test_bags_and_bank_are_saved_per_character(tmp_path):
+    lua = run(BAGS_AND_BANK, 'fire("BAG_UPDATE_DELAYED"); fire("BANKFRAME_OPENED"); fire("BANKFRAME_CLOSED")')
     conn, rep = import_saved(lua, tmp_path)
-    assert rep["deposits"] == 1
-    row = conn.execute("SELECT item_id, quantity, hours, deposit FROM ah_deposits").fetchone()
-    assert tuple(row) == (2318, 20, 24, 120)
-    assert addon_import.measured_fees(conn)["deposit_rates"][24]["rate"] == pytest.approx(0.4)
+    assert rep["characters"] == 1
+    c = conn.execute("SELECT * FROM characters").fetchone()
+    assert (c["name"], c["class"], c["money"]) == ("Tester", "HUNTER", 123456)
+    held = {(r["location"], r["item_id"]): (r["count"], r["bound"]) for r in conn.execute("SELECT * FROM inventory")}
+    assert held == {("bags", 2318): (25, 0), ("bags", 6948): (1, 1), ("bank", 2318): (40, 0)}
+    assert tuple(conn.execute("SELECT quality, icon_id FROM items WHERE item_id = 2318").fetchone()) == (1, 134252)
+
+
+def test_bank_is_not_read_while_closed(tmp_path):
+    lua = run(BAGS_AND_BANK, 'fire("PLAYERBANKSLOTS_CHANGED")')
+    conn, _ = import_saved(lua, tmp_path)
+    assert conn.execute("SELECT COUNT(*) FROM inventory WHERE location = 'bank'").fetchone()[0] == 0
 
 
 def test_slash_command_and_diag_do_not_error(tmp_path):

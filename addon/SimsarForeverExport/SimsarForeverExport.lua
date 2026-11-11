@@ -5,7 +5,6 @@
 -- Data is only written to disk on /reload or logout.
 
 local DB_VERSION = 1
-local DURATION_HOURS = { 2, 8, 24 }
 
 SimsarForeverExportDB = SimsarForeverExportDB or {}
 
@@ -18,7 +17,7 @@ local function db()
   d.version = DB_VERSION
   d.recipes = d.recipes or {}
   d.invoices = d.invoices or {}
-  d.deposits = d.deposits or {}
+  d.characters = d.characters or {}
   d.items = d.items or {}
   d.stats = d.stats or {}
   return d
@@ -31,9 +30,10 @@ end
 
 local function rememberItem(itemID)
   if not itemID then return end
-  local name, _, _, _, _, _, _, _, _, _, sellPrice = GetItemInfo(itemID)
+  local name, _, quality, _, _, _, _, _, _, icon, sellPrice = GetItemInfo(itemID)
+  if not icon and GetItemInfoInstant then icon = select(5, GetItemInfoInstant(itemID)) end
   if name then
-    db().items[itemID] = { name = name, vendor = sellPrice }
+    db().items[itemID] = { name = name, vendor = sellPrice, quality = quality, icon = icon }
   end
 end
 
@@ -324,80 +324,93 @@ local function onMerchantShow()
   d.stats.lastMerchant = { time = time(), items = n }
 end
 
-local function recordDeposit(itemID, quantity, hours, deposit, vendor)
-  if not (itemID and deposit) then return end
+-- Bags and bank of every character you log in with. The bank can only be read while it is open.
+local NUM_BAGS = NUM_BAG_SLOTS or 4
+local NUM_BANK_BAGS = NUM_BANKBAGSLOTS or 7
+local bankOpen = false
+
+local function numSlots(bag)
+  if C_Container and C_Container.GetContainerNumSlots then return C_Container.GetContainerNumSlots(bag) or 0 end
+  return GetContainerNumSlots and GetContainerNumSlots(bag) or 0
+end
+
+local function slotItem(bag, slot)
+  if C_Container and C_Container.GetContainerItemInfo then
+    local info = C_Container.GetContainerItemInfo(bag, slot)
+    if info then return info.itemID, info.stackCount, info.isBound end
+    return nil
+  end
+  if GetContainerItemInfo then
+    local _, count, _, _, _, _, link = GetContainerItemInfo(bag, slot)
+    return idFromLink(link), count, nil
+  end
+end
+
+local function readContainers(bags)
+  local items, seen = {}, {}
+  for _, bag in ipairs(bags) do
+    if not seen[bag] then
+      seen[bag] = true
+      for slot = 1, numSlots(bag) do
+        local itemID, count, bound = slotItem(bag, slot)
+        if itemID then
+          local e = items[itemID] or { count = 0, bound = 0 }
+          e.count = e.count + (count or 1)
+          if bound then e.bound = e.bound + (count or 1) end
+          items[itemID] = e
+          rememberItem(itemID)
+        end
+      end
+    end
+  end
+  return items
+end
+
+local function bagIDs()
+  local ids = {}
+  for bag = 0, NUM_BAGS do ids[#ids + 1] = bag end
+  local B = Enum and Enum.BagIndex
+  if B and B.ReagentBag then ids[#ids + 1] = B.ReagentBag end
+  return ids
+end
+
+local function bankIDs()
+  local ids = { BANK_CONTAINER or -1 }
+  for bag = NUM_BAGS + 1, NUM_BAGS + NUM_BANK_BAGS do ids[#ids + 1] = bag end
+  local B = Enum and Enum.BagIndex
+  if B then
+    if B.Reagentbank then ids[#ids + 1] = B.Reagentbank end
+    for i = 1, 6 do
+      if B["CharacterBankTab_" .. i] then ids[#ids + 1] = B["CharacterBankTab_" .. i] end
+    end
+  end
+  return ids
+end
+
+local function character()
   local d = db()
-  d.deposits[#d.deposits + 1] = {
-    item = itemID, quantity = quantity, hours = hours, deposit = deposit, vendor = vendor, seen = time(),
-  }
-  while #d.deposits > 500 do table.remove(d.deposits, 1) end
+  d.characters = d.characters or {}
+  local name, realm = UnitName("player"), GetRealmName()
+  local key = tostring(name) .. "-" .. tostring(realm)
+  local c = d.characters[key] or {}
+  d.characters[key] = c
+  c.name, c.realm, c.faction = name, realm, UnitFactionGroup("player")
+  c.class = select(2, UnitClass("player"))
+  c.money = GetMoney and GetMoney() or c.money
+  return c
 end
 
-local function guarded(fn)
-  local ok, err = pcall(fn)
-  if not ok then db().stats.lastError = tostring(err) end
+local function scanBags()
+  local c = character()
+  c.bags = readContainers(bagIDs())
+  c.bagsTime = time()
 end
 
--- Post hooks run after the item has left the sell slot, so the deposit is quoted while the
--- item is still there and remembered until the post goes through.
-local sellSlot
-
-local function hookLegacyPosting()
-  if not (PostAuction and GetAuctionSellItemInfo and CalculateAuctionDeposit) then return false end
-  local f = CreateFrame("Frame")
-  f:RegisterEvent("NEW_AUCTION_UPDATE")
-  f:SetScript("OnEvent", function()
-    guarded(function()
-      local name, _, count, _, _, _, unitVendor, _, _, itemID = GetAuctionSellItemInfo()
-      if not name then sellSlot = nil; return end
-      local perUnit = {}
-      for runTime = 1, 3 do
-        local deposit = CalculateAuctionDeposit(runTime, 1, 1)
-        if deposit then perUnit[runTime] = deposit end
-      end
-      sellSlot = { name = name, itemID = itemID, count = count, vendor = unitVendor, perUnit = perUnit }
-    end)
-  end)
-  hooksecurefunc("PostAuction", function(_, _, runTime, stackSize, numStacks)
-    guarded(function()
-      local s = sellSlot
-      if not (s and s.perUnit[runTime]) then return end
-      local quantity = (stackSize or s.count or 1) * (numStacks or 1)
-      recordDeposit(s.itemID or s.name, quantity, DURATION_HOURS[runTime] or runTime,
-        s.perUnit[runTime] * quantity, s.vendor)
-    end)
-  end)
-  return true
-end
-
-local function hookModernPosting()
-  local AH = C_AuctionHouse
-  if not (AH and AH.PostItem and AH.CalculateItemDeposit) then return false end
-  local quote, quoting
-  local function remember(fnName, a, duration, quantity)
-    if quoting then return end
-    quoting = true
-    guarded(function()
-      local itemID = fnName == "CalculateItemDeposit" and C_Item.GetItemID(a) or a
-      quote = { itemID = itemID, duration = duration, quantity = quantity, deposit = AH[fnName](a, duration, quantity) }
-    end)
-    quoting = false
-  end
-  hooksecurefunc(AH, "CalculateItemDeposit", function(...) remember("CalculateItemDeposit", ...) end)
-  if AH.CalculateCommodityDeposit then
-    hooksecurefunc(AH, "CalculateCommodityDeposit", function(...) remember("CalculateCommodityDeposit", ...) end)
-  end
-  local function posted(_, duration, quantity)
-    guarded(function()
-      if quote and quote.duration == duration and quote.quantity == quantity then
-        recordDeposit(quote.itemID, quantity, DURATION_HOURS[duration] or duration, quote.deposit,
-          select(11, GetItemInfo(quote.itemID)))
-      end
-    end)
-  end
-  hooksecurefunc(AH, "PostItem", posted)
-  if AH.PostCommodity then hooksecurefunc(AH, "PostCommodity", posted) end
-  return true
+local function scanBank()
+  if not bankOpen then return end
+  local c = character()
+  c.bank = readContainers(bankIDs())
+  c.bankTime = time()
 end
 
 local function diag()
@@ -409,26 +422,29 @@ local function diag()
   say("Trainer API: " .. has(GetNumTrainerServices) .. ", reagent label: '" .. reagentPrefix .. "'")
   say("Merchant API: " .. has(C_MerchantFrame and C_MerchantFrame.GetItemInfo) .. " (modern), "
     .. has(GetMerchantItemInfo) .. " (classic)")
-  say("Legacy AH: " .. has(PostAuction) .. ", modern AH: " .. has(C_AuctionHouse and C_AuctionHouse.PostItem)
-    .. ", invoices: " .. has(GetInboxInvoiceInfo))
+  say("Bags API: " .. has(C_Container and C_Container.GetContainerItemInfo) .. " (modern), "
+    .. has(GetContainerItemInfo) .. " (classic), invoices: " .. has(GetInboxInvoiceInfo))
   if db().stats.lastError then say("last error: " .. db().stats.lastError) end
 end
 
 local function status()
-  local d, recipes, learned, invoices = db(), 0, 0, 0
+  local d, recipes, learned, invoices, chars = db(), 0, 0, 0, 0
   for _, r in pairs(d.recipes) do
     recipes = recipes + 1
     if r.learned then learned = learned + 1 end
   end
   for _ in pairs(d.invoices) do invoices = invoices + 1 end
-  say(recipes .. " recipes (" .. learned .. " learned), " .. invoices .. " sale invoices, "
-    .. #d.deposits .. " deposits. Type /reload to write them to disk.")
+  for _ in pairs(d.characters) do chars = chars + 1 end
+  say(recipes .. " recipes (" .. learned .. " learned), " .. invoices .. " sale invoices, bags of "
+    .. chars .. " characters. Type /reload to write them to disk.")
 end
 
 local frame = CreateFrame("Frame")
 for _, event in ipairs({ "PLAYER_LOGIN", "TRADE_SKILL_SHOW", "TRADE_SKILL_UPDATE", "TRADE_SKILL_LIST_UPDATE",
   "TRADE_SKILL_DATA_SOURCE_CHANGED", "CRAFT_SHOW", "CRAFT_UPDATE", "TRAINER_SHOW", "TRAINER_UPDATE",
-  "MAIL_INBOX_UPDATE", "MERCHANT_SHOW", "MERCHANT_UPDATE" }) do
+  "MAIL_INBOX_UPDATE", "MERCHANT_SHOW", "MERCHANT_UPDATE", "BAG_UPDATE_DELAYED", "PLAYER_MONEY",
+  "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "PLAYERBANKBAGSLOTS_CHANGED",
+  "PLAYER_LOGOUT" }) do
   pcall(frame.RegisterEvent, frame, event)
 end
 
@@ -453,7 +469,7 @@ frame:SetScript("OnEvent", function(_, event)
     db().build = select(4, GetBuildInfo())
     db().realm = GetRealmName()
     db().faction = UnitFactionGroup("player")
-    if not hookModernPosting() then hookLegacyPosting() end
+    later("bags", scanBags)
     if GameTooltip and GameTooltip.HookScript then
       pcall(GameTooltip.HookScript, GameTooltip, "OnTooltipSetItem", function(tip) pcall(onItemTooltip, tip) end)
     end
@@ -461,6 +477,19 @@ frame:SetScript("OnEvent", function(_, event)
     later("trainer", readTrainer)
   elseif event == "MAIL_INBOX_UPDATE" then
     later("mail", onMailUpdate)
+  elseif event == "BAG_UPDATE_DELAYED" then
+    later("bags", scanBags)
+  elseif event == "PLAYER_MONEY" then
+    later("money", character)
+  elseif event == "BANKFRAME_OPENED" then
+    bankOpen = true
+    later("bank", function() scanBank(); scanBags() end)
+  elseif event == "BANKFRAME_CLOSED" then
+    bankOpen = false
+  elseif event == "PLAYERBANKSLOTS_CHANGED" or event == "PLAYERBANKBAGSLOTS_CHANGED" then
+    later("bank", scanBank)
+  elseif event == "PLAYER_LOGOUT" then
+    pcall(scanBags)
   elseif event == "MERCHANT_SHOW" or event == "MERCHANT_UPDATE" then
     later("merchant", onMerchantShow)
   else
