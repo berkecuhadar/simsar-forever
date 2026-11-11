@@ -196,6 +196,23 @@ export interface Alert {
   seen: number;
 }
 
+interface Section { ok: boolean; needs?: string }
+
+export interface TimingGroup {
+  cheapest: string; cheapest_gap: number; dearest: string; dearest_gap: number; p: number | null;
+  significant: boolean; profile: { key: string; median: number; n: number }[];
+}
+
+export interface ItemStats {
+  mean_reversion: Section & { half_life_days?: number | null; equilibrium?: number | null; adf_p?: number | null;
+    verdict?: "strong" | "weak" | "none"; n?: number };
+  forecast: Section & { flat?: boolean; points?: { t: number; mean: number; low: number; high: number }[];
+    last?: number; change?: number; days_used?: number };
+  elasticity: Section & { elasticity?: number; ci_low?: number; ci_high?: number; p?: number; r2?: number;
+    n?: number; clear?: boolean };
+  timing: Section & { hours?: TimingGroup | null; weekdays?: TimingGroup | null };
+}
+
 export interface ItemDetail {
   item: ItemFull;
   explanation: string[];
@@ -220,6 +237,7 @@ export const api = {
   groups: () => get<Group[]>("/api/groups"),
   items: (scope: "tracked" | "all" = "tracked") => get<Item[]>(`/api/items?scope=${scope}`),
   item: (id: number) => get<ItemDetail>(`/api/items/${id}`),
+  itemStats: (id: number) => get<ItemStats>(`/api/items/${id}/stats`),
   crafts: () => get<Craft[]>("/api/crafts"),
   alerts: () => get<Alert[]>("/api/alerts"),
   markSeen: () => fetch("/api/alerts/seen", { method: "POST" }),

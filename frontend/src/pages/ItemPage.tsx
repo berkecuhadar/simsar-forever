@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Flags, LabelBadge, VerdictBadge } from "../components/Badges";
 import { Chart, THEME, axisStyle, baseOption } from "../components/Chart";
+import { StatsCard } from "../components/StatsCard";
 import { Hint } from "../components/Hint";
 import { groupTitle, useApp } from "../context";
 import { Money, ago, moneyText, num, pct } from "../format";
@@ -23,6 +24,7 @@ export default function ItemPage() {
   const { groups, version } = useApp();
   const navigate = useNavigate();
   const { data, error } = useData(() => api.item(Number(id)), [id], version);
+  const { data: stats } = useData(() => api.itemStats(Number(id)), [id], version);
 
   const priceOption = useMemo(() => {
     if (!data) return null;
@@ -31,7 +33,7 @@ export default function ItemPage() {
     return {
       ...baseOption,
       tooltip: { ...baseOption.tooltip, valueFormatter: (v: number) => moneyText(v) },
-      legend: { ...baseOption.legend, data: ["Cheapest listing (TSM)", "Market value", "Historical", "Auctionator daily low", "Auctionator daily high"] },
+      legend: { ...baseOption.legend, data: ["Cheapest listing (TSM)", "Market value", "Historical", "Auctionator daily low", "Auctionator daily high", "Forecast"] },
       xAxis: { type: "time", ...axisStyle({ splitLine: { show: false } }) },
       yAxis: { type: "value", scale: true, ...axisStyle({ axisLabel: { color: THEME.muted, formatter: (v: number) => moneyText(v) } }) },
       dataZoom: [{ type: "inside" }, { type: "slider", height: 18, bottom: 6, borderColor: THEME.grid, textStyle: { color: THEME.muted } }],
@@ -49,9 +51,18 @@ export default function ItemPage() {
           data: h.auctionator.map((r) => [ms(r.t + 43200), r.high]) },
         { name: "Your posts", type: "scatter", symbol: "diamond", symbolSize: 9, color: THEME.red,
           data: h.postings.map((p) => [ms(p.t), p.price]) },
+        ...(stats?.forecast.ok && stats.forecast.points ? [
+          { name: "Forecast", type: "line", color: THEME.gold, lineStyle: { type: "dashed", width: 2 }, symbolSize: 5,
+            data: stats.forecast.points.map((p) => [ms(p.t), Math.round(p.mean)]) },
+          { name: "Forecast low", type: "line", stack: "band", symbol: "none", lineStyle: { opacity: 0 },
+            data: stats.forecast.points.map((p) => [ms(p.t), Math.round(p.low)]), tooltip: { show: false } },
+          { name: "Forecast range", type: "line", stack: "band", symbol: "none", lineStyle: { opacity: 0 },
+            areaStyle: { color: THEME.gold, opacity: 0.12 },
+            data: stats.forecast.points.map((p) => [ms(p.t), Math.round(p.high - p.low)]), tooltip: { show: false } },
+        ] : []),
       ],
     };
-  }, [data]);
+  }, [data, stats]);
 
   const volumeOption = useMemo(() => {
     if (!data) return null;
@@ -159,6 +170,8 @@ export default function ItemPage() {
           <p className="muted small"><Link to="/crafts">Open all crafts</Link></p>
         </div>
       </div>
+
+      <StatsCard stats={stats} />
 
       <div className="card">
         <h3>Price history</h3>
