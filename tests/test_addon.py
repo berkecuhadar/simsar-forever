@@ -277,3 +277,21 @@ def test_login_drops_recipes_without_a_profession(tmp_path):
     lua.execute(ADDON)
     lua.execute('fire("PLAYER_LOGIN")')
     assert list(lua.eval("SimsarForeverExportDB.recipes").keys()) == ["Leatherworking|Kit"]
+
+
+def test_merchant_prices_with_the_forever_api(tmp_path):
+    api = """
+    local goods = {
+      { name = "Coarse Thread", price = 10, stackCount = 1, numAvailable = -1, id = 2320 },
+      { name = "Medal", price = 0, stackCount = 1, numAvailable = -1, hasExtendedCost = true, id = 1 },
+      { name = "Salt", price = 50, stackCount = 5, numAvailable = -1, id = 4289 },
+    }
+    C_MerchantFrame = { GetItemInfo = function(i) return goods[i] end }
+    function GetMerchantNumItems() return #goods end
+    function GetMerchantItemID(i) return goods[i].id end
+    """
+    lua = run(api, 'fire("MERCHANT_SHOW")')
+    conn, rep = import_saved(lua, tmp_path)
+    assert rep["merchant_prices"] == 2
+    prices = dict(conn.execute("SELECT item_id, vendor_buy FROM items WHERE vendor_buy IS NOT NULL").fetchall())
+    assert prices == {2320: 10, 4289: 10}

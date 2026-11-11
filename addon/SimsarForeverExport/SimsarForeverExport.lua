@@ -292,17 +292,36 @@ local function onMailUpdate()
 end
 
 -- Vendor prices for reagents like thread, salt and dyes. Only unlimited stock counts.
+-- The Forever client has C_MerchantFrame.GetItemInfo instead of GetMerchantItemInfo.
+local function merchantItem(i)
+  if C_MerchantFrame and C_MerchantFrame.GetItemInfo then
+    local info = C_MerchantFrame.GetItemInfo(i)
+    if info then
+      return info.name, info.price, info.stackCount, info.numAvailable, info.hasExtendedCost or info.currencyID
+    end
+    return nil
+  end
+  if GetMerchantItemInfo then
+    local name, _, price, quantity, numAvailable, _, _, extendedCost = GetMerchantItemInfo(i)
+    return name, price, quantity, numAvailable, extendedCost
+  end
+end
+
 local function onMerchantShow()
-  if not (GetMerchantNumItems and GetMerchantItemInfo and GetMerchantItemLink) then return end
+  if not GetMerchantNumItems then return end
   local d = db()
   d.merchant = d.merchant or {}
+  local n = 0
   for i = 1, GetMerchantNumItems() do
-    local name, _, price, quantity, numAvailable, _, _, extendedCost = GetMerchantItemInfo(i)
-    local itemID = idFromLink(GetMerchantItemLink(i))
+    local name, price, quantity, numAvailable, extendedCost = merchantItem(i)
+    local itemID = (GetMerchantItemID and GetMerchantItemID(i))
+      or idFromLink(GetMerchantItemLink and GetMerchantItemLink(i))
     if itemID and name and price and price > 0 and numAvailable == -1 and not extendedCost then
       d.merchant[itemID] = { name = name, price = price / math.max(quantity or 1, 1), seen = time() }
+      n = n + 1
     end
   end
+  d.stats.lastMerchant = { time = time(), items = n }
 end
 
 local function recordDeposit(itemID, quantity, hours, deposit, vendor)
@@ -388,6 +407,8 @@ local function diag()
   say("TradeSkill API: " .. has(GetNumTradeSkills) .. ", Craft API: " .. has(GetNumCrafts)
     .. ", C_TradeSkillUI: " .. has(C_TradeSkillUI and C_TradeSkillUI.GetAllRecipeIDs))
   say("Trainer API: " .. has(GetNumTrainerServices) .. ", reagent label: '" .. reagentPrefix .. "'")
+  say("Merchant API: " .. has(C_MerchantFrame and C_MerchantFrame.GetItemInfo) .. " (modern), "
+    .. has(GetMerchantItemInfo) .. " (classic)")
   say("Legacy AH: " .. has(PostAuction) .. ", modern AH: " .. has(C_AuctionHouse and C_AuctionHouse.PostItem)
     .. ", invoices: " .. has(GetInboxInvoiceInfo))
   if db().stats.lastError then say("last error: " .. db().stats.lastError) end
@@ -407,7 +428,7 @@ end
 local frame = CreateFrame("Frame")
 for _, event in ipairs({ "PLAYER_LOGIN", "TRADE_SKILL_SHOW", "TRADE_SKILL_UPDATE", "TRADE_SKILL_LIST_UPDATE",
   "TRADE_SKILL_DATA_SOURCE_CHANGED", "CRAFT_SHOW", "CRAFT_UPDATE", "TRAINER_SHOW", "TRAINER_UPDATE",
-  "MAIL_INBOX_UPDATE", "MERCHANT_SHOW" }) do
+  "MAIL_INBOX_UPDATE", "MERCHANT_SHOW", "MERCHANT_UPDATE" }) do
   pcall(frame.RegisterEvent, frame, event)
 end
 
@@ -440,7 +461,7 @@ frame:SetScript("OnEvent", function(_, event)
     later("trainer", readTrainer)
   elseif event == "MAIL_INBOX_UPDATE" then
     later("mail", onMailUpdate)
-  elseif event == "MERCHANT_SHOW" then
+  elseif event == "MERCHANT_SHOW" or event == "MERCHANT_UPDATE" then
     later("merchant", onMerchantShow)
   else
     if event:find("SHOW") then announced = false end
