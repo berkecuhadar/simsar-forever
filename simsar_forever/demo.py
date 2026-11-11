@@ -116,6 +116,21 @@ def build(conn, days=14, seed=7, now=None):
         conn.executemany("INSERT INTO recipe_reagents VALUES(?,?,?,?)",
                          [(key, ids[r], label(r), c) for r, c in reagents.items()])
 
+    chars = [("Leatherhand-Demo", "Leatherhand (demo)", "HUNTER", 1_234_500),
+             ("Threadbare-Demo", "Threadbare (demo)", "MAGE", 87_650)]
+    for key, name, cls, money in chars:
+        conn.execute("INSERT INTO characters VALUES(?,?,?,?,?,?,?,?)",
+                     (key, name, "Demo Realm", cls, "Alliance", money, now - 600, now - 86400))
+    holdings = [
+        ("Leatherhand-Demo", "bags", "Light Leather", 60), ("Leatherhand-Demo", "bags", "Medium Leather", 35),
+        ("Leatherhand-Demo", "bank", "Heavy Leather", 120), ("Leatherhand-Demo", "bank", "Medium Hide", 12),
+        ("Leatherhand-Demo", "bags", "Heavy Armor Kit", 4), ("Threadbare-Demo", "bags", "Linen Cloth", 140),
+        ("Threadbare-Demo", "bags", "Wool Cloth", 80), ("Threadbare-Demo", "bank", "Silk Cloth", 200),
+        ("Threadbare-Demo", "bank", "Strange Dust", 45), ("Leatherhand-Demo", "bank", "Silk Cloth", 20),
+    ]
+    conn.executemany("INSERT INTO inventory VALUES(?,?,?,?,0)",
+                     [(k, loc, ids[name], n) for k, loc, name, n in holdings])
+
     db.set_meta(conn, "demo", True)
     db.set_meta(conn, "tsm_realm_updated_at", stamps[-1])
     db.set_meta(conn, "tsm_region_updated_at", stamps[-1])

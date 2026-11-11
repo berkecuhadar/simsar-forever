@@ -64,6 +64,14 @@ def test_config_rejects_public_host(tmp_path):
         config.load(f)
 
 
+def test_inventory(client):
+    inv = client.get("/api/inventory").json()
+    assert {c["name"] for c in inv["characters"]} == {"Leatherhand (demo)", "Threadbare (demo)"}
+    silk = [i for i in inv["items"] if i["name"] == "Silk Cloth (demo)"]
+    assert {i["char_key"] for i in silk} == {"Leatherhand-Demo", "Threadbare-Demo"}
+    assert all(i["value"] > 0 for i in silk)
+
+
 def test_item_stats(client):
     items = client.get("/api/items").json()
     stats = client.get(f"/api/items/{items[0]['item_id']}/stats").json()

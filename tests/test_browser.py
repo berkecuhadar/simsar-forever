@@ -38,7 +38,7 @@ def server(tmp_path_factory):
     import uvicorn
     tmp = tmp_path_factory.mktemp("browser")
     port = _free_port()
-    cfg = config.load(tmp / "config.yaml", overrides={"server": {"port": port}})
+    cfg = config.load(tmp / "config.yaml", overrides={"server": {"port": port}, "icons": {"enabled": False}})
     conn = db.connect(config.db_path(cfg))
     demo.build(conn)
     conn.close()
@@ -70,6 +70,7 @@ def render(url, profile):
     ("/crafts", ["Crafts", "Bolt of Linen Cloth (demo)"]),
     ("/glossary", ["Opportunity cost", "Sale rate"]),
     ("/status", ["Data status", "Auction house cut"]),
+    ("/inventory", ["Bags and bank", "Leatherhand (demo)", "Heavy Leather (demo)"]),
 ])
 def test_page_renders(server, path, expected):
     base, tmp = server
