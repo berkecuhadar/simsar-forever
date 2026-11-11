@@ -1,7 +1,9 @@
 import argparse
 import json
 import logging
+import shutil
 import sys
+from pathlib import Path
 
 from . import auctionator, config, db, refresh
 from .money import fmt
@@ -47,6 +49,21 @@ def cmd_inspect_ato(cfg, args):
 def cmd_find_ato(cfg, args):
     hits = auctionator.find_files(args.root)
     print("\n".join(hits) if hits else "No Auctionator.lua found under that folder.")
+
+
+ADDON_SOURCE = Path(__file__).resolve().parents[1] / "addon" / "SimsarExport"
+
+
+def cmd_install_addon(cfg, args):
+    target_root = auctionator.addon_dir(cfg, "SimsarExport")
+    if target_root is None:
+        sys.exit("Set wow.game_dir in config.yaml first.")
+    if not ADDON_SOURCE.is_dir():
+        sys.exit(f"Addon source not found at {ADDON_SOURCE}")
+    if not target_root.parent.is_dir():
+        sys.exit(f"{target_root.parent} does not exist; check wow.game_dir.")
+    shutil.copytree(ADDON_SOURCE, target_root, dirs_exist_ok=True)
+    print(f"Installed SimsarExport to {target_root}. Restart the game or /reload, then type /simsar diag.")
 
 
 def cmd_demo(cfg, args):
@@ -95,6 +112,7 @@ def main(argv=None):
     p = sub.add_parser("find-ato", help="search a folder for Auctionator.lua")
     p.add_argument("root")
     p.set_defaults(func=cmd_find_ato)
+    sub.add_parser("install-addon", help="copy the SimsarExport addon into the game's AddOns folder")         .set_defaults(func=cmd_install_addon)
     p = sub.add_parser("demo", help="build a synthetic demo database and serve it")
     p.add_argument("--no-serve", action="store_true")
     p.add_argument("--no-browser", action="store_true")

@@ -3,7 +3,11 @@
 import json
 import time
 
-from .. import __version__, db, refresh
+from pathlib import Path
+
+from .. import __version__, auctionator, db, refresh
+
+ADDON_TOC = Path(__file__).resolve().parents[2] / "addon" / "SimsarExport" / "SimsarExport.toc"
 
 
 def _last_log(conn, source):
@@ -75,9 +79,16 @@ def build(cfg, conn, result, now=None):
                     "path": str(addon_path) if addon_path else None, "present": has_addon_file,
                     "recipes": (addon or {}).get("recipes"), "invoices": (addon or {}).get("invoices"),
                     "error": (addon or {}).get("error") or (addon or {}).get("last_error")})
+    installed_dir = auctionator.addon_dir(cfg, "SimsarExport")
+    if installed_dir and (installed_dir / "SimsarExport.toc").exists() and ADDON_TOC.exists():
+        have = auctionator.read_toc(installed_dir / "SimsarExport.toc").get("Version")
+        want = auctionator.read_toc(ADDON_TOC).get("Version")
+        if have != want:
+            warn("warn", f"The installed SimsarExport addon is version {have}, this Simsar ships {want}. "
+                         "Run: simsar install-addon")
     if not demo and cfg["wow"].get("game_dir") and not has_addon_file:
-        warn("info", "Install the SimsarExport addon to import your recipes and measure the real AH cut "
-                     "and deposits (see the README).")
+        warn("info", "Install the SimsarExport addon (run: simsar install-addon) to import your recipes, "
+                     "vendor prices and the real AH cut and deposits.")
 
     fees = result["fees"]
     if fees.cut_source == "config" and not demo:
