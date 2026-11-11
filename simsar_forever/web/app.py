@@ -47,7 +47,7 @@ class Runtime:
         self.cfg = cfg
         self.path = config.db_path(cfg)
         self.engine = Engine(cfg, db.connect(self.path))
-        self.worker = refresh.Background(cfg, db.connect(self.path), self.engine) if self.background else None
+        self.worker = refresh.Background(cfg, self.path, self.engine) if self.background else None
 
     def conn(self):
         return db.connect(self.path)

@@ -111,30 +111,43 @@ def refresh_all(cfg, conn, force=False):
 
 
 class Background:
-    """Polls TSM every tsm.check_minutes and SavedVariables every wow.watch_seconds."""
+    """Two threads: one polls TSM every tsm.check_minutes, the other watches SavedVariables every
+    wow.watch_seconds. They are separate so a slow or rate-limited TSM never delays a game import."""
 
-    def __init__(self, cfg, conn, engine):
-        self.cfg, self.conn, self.engine = cfg, conn, engine
+    def __init__(self, cfg, path, engine):
+        self.cfg, self.engine = cfg, engine
+        self.conn = db.connect(path)
+        self.tsm_conn = db.connect(path)
         self.stop = threading.Event()
-        self.thread = threading.Thread(target=self._run, name="simsar-forever-refresh", daemon=True)
         self.lock = threading.Lock()
+        self.tsm_lock = threading.Lock()
+        self.threads = [
+            threading.Thread(target=self._watch_files, name="simsar-forever-files", daemon=True),
+            threading.Thread(target=self._poll_tsm, name="simsar-forever-tsm", daemon=True),
+        ]
 
     def start(self):
-        self.thread.start()
+        for t in self.threads:
+            t.start()
 
-    def _run(self):
-        next_tsm = 0
+    def _poll_tsm(self):
+        while not self.stop.is_set():
+            try:
+                with self.tsm_lock:
+                    fetch_tsm(self.cfg, self.tsm_conn)
+            except Exception:
+                log.exception("TSM refresh failed")
+            self.stop.wait(self.cfg["tsm"]["check_minutes"] * 60)
+
+    def _watch_files(self):
         while not self.stop.is_set():
             try:
                 with self.lock:
-                    if time.time() >= next_tsm:
-                        fetch_tsm(self.cfg, self.conn)
-                        next_tsm = time.time() + self.cfg["tsm"]["check_minutes"] * 60
                     import_auctionator(self.cfg, self.conn)
                     import_addon(self.cfg, self.conn)
                     self.check_alerts()
             except Exception:
-                log.exception("background refresh failed")
+                log.exception("SavedVariables import failed")
             self.stop.wait(self.cfg["wow"]["watch_seconds"])
 
     def check_alerts(self):
@@ -147,7 +160,11 @@ class Background:
         db.set_meta(self.conn, "alerts_version", db.get_meta(self.conn, "data_version"))
 
     def refresh_now(self):
+        with self.tsm_lock:
+            tsm_report = fetch_tsm(self.cfg, self.tsm_conn)
         with self.lock:
-            out = refresh_all(self.cfg, self.conn, force=True)
+            out = {"tsm": tsm_report,
+                   "auctionator": import_auctionator(self.cfg, self.conn, force=True),
+                   "addon": import_addon(self.cfg, self.conn, force=True)}
             self.check_alerts()
             return out
