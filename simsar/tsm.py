@@ -115,6 +115,7 @@ def download(url, timeout, etag=None, attempts=3, session=None):
         headers["If-None-Match"] = etag
     last_error = None
     for attempt in range(attempts):
+        wait = 2 ** attempt * 2
         try:
             r = http.get(url, headers=headers, timeout=timeout)
         except requests.RequestException as e:
@@ -126,10 +127,22 @@ def download(url, timeout, etag=None, attempts=3, session=None):
                 return 200, r.content.decode("utf-8-sig"), r.headers.get("ETag")
             if r.status_code in (404, 403, 410):
                 return r.status_code, None, None
-            last_error = TsmError(f"HTTP {r.status_code}")
+            if r.status_code == 429:
+                # The files are public but the host does rate limit bursts of requests.
+                last_error = TsmError("rate limited by TSM (HTTP 429); will try again on the next check")
+                wait = _retry_after(r.headers.get("Retry-After"), wait)
+            else:
+                last_error = TsmError(f"HTTP {r.status_code}")
         if attempt + 1 < attempts:
-            time.sleep(2 ** attempt * 2)
+            time.sleep(wait)
     raise TsmError(f"download failed after {attempts} attempts: {last_error}")
+
+
+def _retry_after(value, default):
+    try:
+        return min(max(float(value), 1), 120)
+    except (TypeError, ValueError):
+        return default
 
 
 def fetch(cfg, conn, session=None):
