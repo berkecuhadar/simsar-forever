@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2 (2026-11-12)
+
+- Fixed the game message "SimsarForeverExport has been blocked from an action only available to the
+  Blizzard UI". The save prompt borrowed Blizzard's popup system, which taints it so that the game
+  then blocks Blizzard's own popups. The prompt is now the addon's own small window, and the addon no
+  longer writes any Blizzard global.
+
 ## 0.1.1 (2026-11-12)
 
 - Installing no longer needs a C compiler on new Python versions. PyYAML had no Windows build for
