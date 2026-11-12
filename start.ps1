@@ -12,7 +12,14 @@ if (-not (Test-Path $venvPython)) {
     Write-Host "Creating virtual environment..."
     $py = Get-Command py -ErrorAction SilentlyContinue
     if ($py) { & py -3 -m venv .venv } else { & python -m venv .venv }
-    if (-not (Test-Path $venvPython)) { throw "Could not create .venv. Install Python 3.12 or newer." }
+    if (-not (Test-Path $venvPython)) {
+        throw "Could not create .venv. Install Python 3.12 or newer from https://www.python.org/downloads/ and run start.bat again."
+    }
+}
+
+$pyVersion = (& $venvPython -c "import sys; print('%d.%d' % sys.version_info[:2])").Trim()
+if ([version]$pyVersion -lt [version]"3.12") {
+    throw "Simsar Forever needs Python 3.12 or newer, but .venv uses Python $pyVersion. Install a newer Python from https://www.python.org/downloads/, delete the .venv folder and run start.bat again."
 }
 
 # Reinstall when dependencies changed or the folder was moved or renamed (the editable install
@@ -23,8 +30,12 @@ if (Test-Path $stamp) { $installedFrom = "$(Get-Content $stamp -Raw)".Trim().Tri
 if ($installedFrom -ne $PSScriptRoot -or (Get-Item pyproject.toml).LastWriteTime -gt (Get-Item $stamp).LastWriteTime) {
     Write-Host "Installing Python packages..."
     & $venvPython -m pip install --quiet --upgrade pip
-    & $venvPython -m pip install --quiet -e .
-    if ($LASTEXITCODE -ne 0) { throw "pip install failed" }
+    & $venvPython -m pip install --quiet --prefer-binary -e .
+    if ($LASTEXITCODE -ne 0) {
+        throw ("Installing the Python packages failed (details above). This usually means one of them has no " +
+               "ready-made build for Python $pyVersion yet. Install Python 3.13 from https://www.python.org/downloads/, " +
+               "delete the .venv folder and run start.bat again.")
+    }
     [IO.File]::WriteAllText($stamp, $PSScriptRoot)
 }
 
