@@ -180,6 +180,11 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 18px
 .why { white-space: normal; display: inline-block; min-width: 260px; max-width: 420px; line-height: 1.4; }
 .tile-button { text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .tile-button.selected { border-color: var(--gold); }
+.picker { list-style: none; margin: 0 0 16px; padding: 0; border: 1px solid var(--line); border-radius: 6px; }
+.picker li { display: flex; align-items: center; gap: 16px; padding: 7px 12px; border-bottom: 1px solid var(--line-soft); }
+.picker li:last-child { border-bottom: none; }
+.picker li button.link { color: var(--text); text-align: left; flex: 1; }
+table.data tr.done td { color: var(--faint); }
 
 .flags { display: inline-flex; gap: 10px; flex-wrap: nowrap; }
 .flag { font-size: 13px; color: var(--amber); white-space: nowrap; }

@@ -45,6 +45,10 @@
   backtest compares them with "no change", with a significance test, and every day's forecasts are
   stored and scored as their day arrives. "Hold" is only advised when the backtest shows the
   forecasts beating "no change"; until then the page says why.
+- **Shopping list page.** Pick recipes and how many to craft; Simsar adds up the materials, takes
+  off what your characters already hold, and shows what is left to buy, whether the auction house
+  or a vendor is cheaper, materials that are cheaper to craft than to buy, and the batch's expected
+  profit. Recipes can be added from the Crafts page.
 - **Navigation** moved to a side menu grouped into Market, Crafting, Your characters and About the
   data.
 

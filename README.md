@@ -12,6 +12,7 @@ price history in SQLite, and answers practical questions in a web page on your o
 - Should I sell what I hold now, a few at a time, to a vendor, or wait, and how often has that
   advice been right?
 - How long does a recipe take to pay for itself?
+- What do I need to buy for the crafts I plan, after what my characters already hold?
 - What is cheap right now, and is it cheap or just falling?
 - Does this price snap back, where is it heading, how sensitive are buyers to it, and when in the
   day is it cheapest? (econometric statistics with statsmodels and SciPy)

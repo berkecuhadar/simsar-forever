@@ -306,6 +306,22 @@ Failure modes: the model knows prices only. A patch, a new source of supply or a
 the market in ways no price history shows. On a young server with a few days of history the
 backtest has little to go on, so hold stays off until it has evidence.
 
+## Shopping list
+
+For the recipes and counts you pick (kept in your browser):
+
+```
+need      = sum over recipes of count_per_craft * crafts
+have      = min(need, units your characters hold in bags and banks, not soulbound)   (if enabled)
+buy       = need - have, priced at the cheaper of the cheapest listing and a vendor
+own value = have * what each would sell for (net of the cut)
+revenue   = recipe revenue * crafts
+profit    = revenue - cost of buy - own value
+```
+
+"Cheaper to craft" marks a material that one of your recipes makes for less than 95% of its buy
+price, counting that recipe's own materials at buy prices.
+
 ## Alerts
 
 After each data update:

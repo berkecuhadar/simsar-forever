@@ -11,6 +11,7 @@ import { useApp } from "../context";
 import { Money, num, pct } from "../format";
 import { useData, useStored } from "../hooks";
 import { CRAFT_COLUMNS, VERDICTS } from "../strings";
+import { addToShoppingList } from "./Shopping";
 
 function col(key: string, cell: (c: Craft) => JSX.Element | string, csv: (c: Craft) => string | number | null | undefined,
   value?: (c: Craft) => number | null | undefined, align?: "left"): ColumnDef<Craft, unknown> {
@@ -67,6 +68,9 @@ function Breakdown({ c }: { c: Craft }) {
         )}
         <div className="muted small">Source: {c.source}{c.learned === 0 ? " (not learned yet)" : ""}</div>
         <Flags flags={c.product_flags} />
+        <div>
+          <button onClick={(e) => { e.stopPropagation(); addToShoppingList(c.recipe_key, c.name); }}>Add to shopping list</button>
+        </div>
       </div>
     </div>
   );
