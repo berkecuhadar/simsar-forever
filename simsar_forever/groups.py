@@ -53,7 +53,10 @@ def assign(names, groups, recipe_items=None):
         name = DEMO_SUFFIX.sub("", name or "")
         hits = []
         for g in groups:
-            if item_id in g["ids"] or item_id in recipe_items.get(g["profession"].lower(), ()):
+            # Recipes pull their products and reagents into crafting groups only; a gathering
+            # profession's own recipes (Forever gives Skinning some) would drag in bars and the like.
+            from_recipes = g["role"] == "craft" and item_id in recipe_items.get(g["profession"].lower(), ())
+            if item_id in g["ids"] or from_recipes:
                 hits.append(g["key"])
             elif name and any(p.search(name) for p in g["patterns"]) and not any(p.search(name) for p in g["exclude"]):
                 hits.append(g["key"])

@@ -55,3 +55,8 @@ def test_recipe_membership_adds_items():
 ])
 def test_all_professions(name, expected):
     assert groups.assign({1: name}, GROUPS).get(1) == expected
+
+
+def test_gathering_recipes_do_not_pull_in_reagents():
+    out = groups.assign({7: "Iron Bar", 8: "Some Forever Thing"}, GROUPS, {"Skinning": {7, 8}})
+    assert 8 not in out and out[7] == ["mining"]
