@@ -2,7 +2,7 @@
 ## Title: Simsar Forever
 ## Notes: Market advice in item tooltips, and recipes, professions, bags, gold and auction mail for the Simsar Forever dashboard.
 ## Author: Berke
-## Version: 0.1.2
+## Version: 0.2.0
 ## SavedVariables: SimsarForeverDB
 
 SimsarForeverData.lua

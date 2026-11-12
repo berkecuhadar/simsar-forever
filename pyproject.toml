@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "simsar-forever"
-version = "0.1.2"
+version = "0.2.0"
 description = "Simsar Forever: local auction house analysis dashboard for WoW Forever"
 readme = "README.md"
 license = "MIT"

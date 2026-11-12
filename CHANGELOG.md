@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-11-12)
+
+Updating: replace the dashboard folder (keep `config.yaml` and `data`), then press *Update addon* on
+the Settings page. It installs the new `SimsarForever` addon and removes `SimsarForeverExport`;
+the old addon's saved data is still read. Restart the game or `/reload`.
 
 ### Addon
 
