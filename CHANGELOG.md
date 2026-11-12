@@ -45,6 +45,11 @@
   backtest compares them with "no change", with a significance test, and every day's forecasts are
   stored and scored as their day arrives. "Hold" is only advised when the backtest shows the
   forecasts beating "no change"; until then the page says why.
+- **Professions page.** Each character's skill levels, and per profession the recipes that
+  character does not know yet: the skill they need (green when it can learn them now), where to get
+  them (trainer cost, vendor with location and limited stock, or the recipe's auction price), the
+  cheapest cost to learn, the profit they make and how many days they take to pay for themselves.
+  Recipes vendors sell that Simsar has no numbers for yet are listed too.
 - **Shopping list page.** Pick recipes and how many to craft; Simsar adds up the materials, takes
   off what your characters already hold, and shows what is left to buy, whether the auction house
   or a vendor is cheaper, materials that are cheaper to craft than to buy, and the batch's expected

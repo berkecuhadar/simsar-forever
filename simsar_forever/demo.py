@@ -132,6 +132,7 @@ def build(conn, days=14, seed=7, now=None):
     conn.executemany("INSERT INTO inventory VALUES(?,?,?,?,0)",
                      [(k, loc, ids[name], n) for k, loc, name, n in holdings])
     build_ledger(conn, rnd, now, chars, ids)
+    build_professions(conn, now, ids)
 
     db.set_meta(conn, "demo", True)
     db.set_meta(conn, "tsm_realm_updated_at", stamps[-1])
@@ -178,3 +179,27 @@ def build_ledger(conn, rnd, now, chars, ids):
         "INSERT OR IGNORE INTO mail_events VALUES(?,?,?,?,?,?,?,?)",
         [("demo-buy-1", "bought", now - 90000, chars[0][0], label("Heavy Leather"), ids["Heavy Leather"], 20, 8400),
          ("demo-exp-1", "expired", now - 50000, chars[0][0], label("Heavy Armor Kit"), ids["Heavy Armor Kit"], 1, None)])
+
+
+def build_professions(conn, now, ids):
+    """Skills, known recipes, trainer costs and a vendor recipe for the demo characters."""
+    skills = [("Leatherhand-Demo", "Leatherworking", 175, 225), ("Leatherhand-Demo", "Skinning", 190, 225),
+              ("Threadbare-Demo", "Tailoring", 140, 150), ("Threadbare-Demo", "Enchanting", 90, 150)]
+    conn.executemany("INSERT INTO char_professions VALUES(?,?,?,?,?)", [(*s, now - 3600) for s in skills])
+    unknown = {("Leatherhand-Demo", "Thick Armor Kit"), ("Leatherhand-Demo", "Cured Heavy Hide"),
+               ("Threadbare-Demo", "Woolen Bag"), ("Threadbare-Demo", "Bolt of Silk Cloth"),
+               ("Threadbare-Demo", "Lesser Magic Wand")}
+    owners = {"Leatherworking": "Leatherhand-Demo", "Tailoring": "Threadbare-Demo", "Enchanting": "Threadbare-Demo"}
+    skill_req = {"Cured Medium Hide": 115, "Cured Heavy Hide": 160, "Medium Armor Kit": 100, "Heavy Armor Kit": 150,
+                 "Thick Armor Kit": 200, "Bolt of Linen Cloth": 1, "Bolt of Woolen Cloth": 75, "Bolt of Silk Cloth": 125,
+                 "Linen Bag": 45, "Woolen Bag": 80, "Minor Wizard Oil": 45, "Lesser Magic Wand": 70}
+    for prof, product, _, _ in RECIPES:
+        key = f"demo:{prof}|{product}"
+        cost = None if product in ("Heavy Armor Kit", "Minor Wizard Oil") else skill_req.get(product, 50) * 50
+        conn.execute("UPDATE recipes SET skill_req = ?, trainer_cost = ?, learned = ? WHERE recipe_key = ?",
+                     (skill_req.get(product), cost, int((owners[prof], product) not in unknown), key))
+        conn.execute("INSERT INTO char_recipes VALUES(?,?,?)",
+                     (owners[prof], key, int((owners[prof], product) not in unknown)))
+    conn.execute("INSERT INTO vendor_recipes VALUES(?,?,?,?,?,?,?)",
+                 (ids["Formula: Minor Wizard Oil"], label("Formula: Minor Wizard Oil"), 2500, 1,
+                  "Demo Supplier", "Demo Zone", now - 86400))

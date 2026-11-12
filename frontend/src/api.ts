@@ -311,6 +311,26 @@ export interface ItemDetail {
   crafts: Craft[];
 }
 
+export interface ProfessionRecipe {
+  recipe_key: string; profession: string; name: string; product_id: number | null; product_name: string | null;
+  product_icon: number | null; product_quality: number | null; verdict: Verdict; profit: number | null;
+  profit_day: number | null; product_sales_per_day: number | null; skill_req: number | null; trainer_cost: number | null;
+  vendor: { item_id: number; name: string; price: number; limited: number; vendor: string | null; zone: string | null } | null;
+  auction: { item_id: number; name: string; price: number } | null;
+  learn_via: "trainer" | "vendor" | "auction" | null; learn_cost: number | null; payback_days: number | null;
+  learned_any: number | null; known_by: string[]; unknown_by: string[];
+}
+
+export interface ProfessionsData {
+  characters: { char_key: string; name: string | null; class: string | null;
+    professions: { profession: string; rank: number; max_rank: number | null; seen_at: number | null; known: number;
+      recipes: number; window_seen: boolean }[] }[];
+  recipes: ProfessionRecipe[];
+  vendor_recipes: { item_id: number; name: string; price: number; limited: number; vendor: string | null;
+    zone: string | null; product: string; auction_price: number | null }[];
+  professions: string[];
+}
+
 export interface AuctionItem {
   name: string; item_id: number | null; quality: number | null; icon_id: number | null;
   sold: number; sales: number; gross: number; cut: number; net: number;
@@ -348,6 +368,7 @@ export const api = {
   accuracy: () => get<Accuracy>("/api/accuracy"),
   crafts: () => get<Craft[]>("/api/crafts"),
   ledger: () => get<LedgerData>("/api/ledger"),
+  professions: () => get<ProfessionsData>("/api/professions"),
   alerts: () => get<Alert[]>("/api/alerts"),
   markSeen: () => fetch("/api/alerts/seen", { method: "POST" }),
   refresh: () => fetch("/api/refresh", { method: "POST" }).then((r) => r.json()),

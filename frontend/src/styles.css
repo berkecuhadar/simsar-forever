@@ -185,6 +185,11 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 18px
 .picker li:last-child { border-bottom: none; }
 .picker li button.link { color: var(--text); text-align: left; flex: 1; }
 table.data tr.done td { color: var(--faint); }
+.skill { margin-top: 6px; }
+.skill-head { display: flex; justify-content: space-between; }
+.skill-bar { height: 4px; background: var(--panel-2); border-radius: 2px; overflow: hidden; margin-top: 3px; }
+.skill-bar > div { height: 100%; background: var(--gold); }
+.ways { display: inline-flex; flex-direction: column; gap: 2px; white-space: nowrap; }
 
 .flags { display: inline-flex; gap: 10px; flex-wrap: nowrap; }
 .flag { font-size: 13px; color: var(--amber); white-space: nowrap; }

@@ -18,6 +18,7 @@ from ..analysis import crafts as craftmod
 from ..analysis import econometrics, explain, inventory, market
 from ..analysis import forecast as forecastmod
 from ..analysis import ledger as ledgermod
+from ..analysis import professions as professionmod
 from ..analysis import sellplan
 from ..analysis.engine import Engine
 from . import status as statusmod
@@ -187,6 +188,10 @@ def create_app(cfg, background=True):
         out["advice"] = {**rt.cfg["advice"], "hold_allowed": sellplan.hold_allowed(fc, rt.cfg),
                          "backtest": fc["backtest"].get(rt.cfg["advice"]["horizon_days"])}
         return out
+
+    @app.get("/api/professions")
+    def professions_view():
+        return professionmod.build(rt.conn(), rt.engine.result())
 
     @app.get("/api/accuracy")
     def accuracy():

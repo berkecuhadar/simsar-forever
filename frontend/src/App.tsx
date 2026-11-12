@@ -12,6 +12,7 @@ import ItemPage from "./pages/ItemPage";
 import Ledger from "./pages/Ledger";
 import SellPlan from "./pages/SellPlan";
 import Shopping from "./pages/Shopping";
+import Professions from "./pages/Professions";
 import Accuracy from "./pages/Accuracy";
 import MarketMap from "./pages/MarketMap";
 import Opportunities from "./pages/Opportunities";
@@ -22,7 +23,7 @@ import StatusPage from "./pages/StatusPage";
 const NAV: { title: string; links: [string, string][] }[] = [
   { title: "Market", links: [["/", "Overview"], ["/opportunities", "Opportunities"], ["/gathering", "What to sell"],
     ["/map", "Market map"]] },
-  { title: "Crafting", links: [["/crafts", "Crafts"], ["/shopping", "Shopping list"]] },
+  { title: "Crafting", links: [["/crafts", "Crafts"], ["/professions", "Professions"], ["/shopping", "Shopping list"]] },
   { title: "Your characters", links: [["/inventory", "Bags & bank"], ["/sell", "Sell plan"], ["/ledger", "Gold ledger"]] },
   { title: "About the data", links: [["/accuracy", "Forecast accuracy"], ["/status", "Data status"],
     ["/glossary", "Glossary"], ["/setup", "Settings"]] },
@@ -138,6 +139,7 @@ export default function App() {
           <Route path="/ledger" element={<Ledger />} />
           <Route path="/sell" element={<SellPlan />} />
           <Route path="/shopping" element={<Shopping />} />
+          <Route path="/professions" element={<Professions />} />
           <Route path="/accuracy" element={<Accuracy />} />
           <Route path="/map" element={<MarketMap />} />
           <Route path="/status" element={<StatusPage />} />

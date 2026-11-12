@@ -74,6 +74,7 @@ def render(url, profile):
     ("/ledger", ["Gold ledger", "Auction sales", "Heavy Armor Kit (demo)", "Gold over time"]),
     ("/sell", ["Sell plan", "Heavy Leather (demo)", "Do this"]),
     ("/accuracy", ["Forecast accuracy", "Backtest", "Live record"]),
+    ("/professions", ["Professions", "Leatherworking", "Thick Armor Kit (demo)", "How to get it"]),
     ("/shopping?add=demo:Leatherworking|Heavy Armor Kit", ["Shopping list", "Heavy Leather (demo)", "Expected profit"]),
 ])
 def test_page_renders(server, path, expected):

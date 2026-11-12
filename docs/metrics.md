@@ -306,6 +306,21 @@ Failure modes: the model knows prices only. A patch, a new source of supply or a
 the market in ways no price history shows. On a young server with a few days of history the
 backtest has little to go on, so hold stays off until it has evidence.
 
+## Professions
+
+Skill levels come from the addon (the profession list, the open profession window and trainers).
+Which character knows a recipe is recorded per character from its own profession window and
+trainer visits; a recipe counts as learned in the Crafts page when any of your characters knows it.
+
+```
+cost to learn = cheapest of: trainer cost, vendor price, recipe item's cheapest auction listing
+payback days  = cost to learn / profit per day
+```
+
+The skill a recipe needs comes from the trainer, or from the "Requires <profession> (<skill>)" line
+of the recipe item's tooltip. Vendor recipes are matched to recipes by name without their
+"Pattern:", "Formula:", "Plans:" ... prefix.
+
 ## Shopping list
 
 For the recipes and counts you pick (kept in your browser):

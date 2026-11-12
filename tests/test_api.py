@@ -96,3 +96,17 @@ def test_sell_plan_and_accuracy(client):
     acc = client.get("/api/accuracy").json()
     assert set(acc["backtest"]) == {"1", "3", "7"} and acc["days"] > 0
     assert set(acc["live"]) == {"1", "3", "7"}
+
+
+def test_professions(client):
+    data = client.get("/api/professions").json()
+    leather = next(c for c in data["characters"] if c["char_key"] == "Leatherhand-Demo")
+    assert {p["profession"]: p["rank"] for p in leather["professions"]} == {"Leatherworking": 175, "Skinning": 190}
+    recipes = {r["name"]: r for r in data["recipes"]}
+    thick = recipes["Thick Armor Kit (demo)"]
+    assert thick["unknown_by"] == ["Leatherhand-Demo"] and thick["skill_req"] == 200
+    assert thick["learn_via"] == "trainer" and thick["learn_cost"] == 10000
+    kit = recipes["Heavy Armor Kit (demo)"]
+    assert kit["learn_via"] == "auction" and kit["auction"]["name"] == "Pattern: Heavy Armor Kit (demo)"
+    oil = recipes["Minor Wizard Oil (demo)"]
+    assert oil["learn_via"] == "vendor" and oil["vendor"]["limited"] == 1
