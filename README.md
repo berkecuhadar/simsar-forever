@@ -85,8 +85,11 @@ cannot be mistaken for the real market.
    - vendor prices of unlimited items (thread, salt, dyes) when you open a vendor.
 
    Type `/sfe` for a summary and `/sfe diag` to see which game APIs are available.
-3. **`/reload` or log out.** The game only writes SavedVariables to disk at that moment. Simsar Forever
-   notices the new files within seconds.
+3. **Save.** The game writes addon data to disk only on `/reload`, logout or a character switch; no
+   addon can make it write sooner. Logging out is enough. To send data right away, type `/sfe save`,
+   or click "Reload now" on the small prompt the addon shows after a bank visit or new recipes (at
+   most every ten minutes, never in combat; `/sfe prompt off` turns it off). Simsar Forever picks up
+   the new files within seconds; there is nothing to do on the dashboard side.
 
 ## Data sources
 
