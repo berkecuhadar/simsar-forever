@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 (2026-11-12)
+
+- Installing no longer needs a C compiler on new Python versions. PyYAML had no Windows build for
+  Python 3.15 and failed with "Microsoft Visual C++ 14.0 or greater is required"; YAML is now read
+  with pure-Python ruamel.yaml, and every dependency installs from ready-made builds on Python 3.12
+  to 3.15.
+- `start.bat` explains Python version and package install problems in plain words.
+
 ## 0.1.0 (2026-11-12)
 
 First version.

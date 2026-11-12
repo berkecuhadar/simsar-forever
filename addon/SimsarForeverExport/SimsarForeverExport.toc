@@ -2,7 +2,7 @@
 ## Title: Simsar Forever Export
 ## Notes: Saves recipes, reagents, auction deposits and sale invoices for the Simsar Forever dashboard.
 ## Author: Berke
-## Version: 0.1.0
+## Version: 0.1.1
 ## SavedVariables: SimsarForeverExportDB
 
 SimsarForeverExport.lua
