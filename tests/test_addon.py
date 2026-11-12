@@ -312,3 +312,23 @@ def test_merchant_prices_with_the_forever_api(tmp_path):
     assert rep["merchant_prices"] == 2
     prices = dict(conn.execute("SELECT item_id, vendor_buy FROM items WHERE vendor_buy IS NOT NULL").fetchall())
     assert prices == {2320: 10, 4289: 10}
+
+
+def test_bank_visit_offers_a_save_once():
+    lua = run(BAGS_AND_BANK, 'fire("BANKFRAME_OPENED"); fire("BANKFRAME_CLOSED"); '
+                             'fire("BANKFRAME_OPENED"); fire("BANKFRAME_CLOSED")')
+    assert list(lua.eval("popups").values()) == ["bank data"]      # not again within ten minutes
+    lua.execute('SimsarForeverExportDB.settings.prompt = nil; SlashCmdList.SIMSARFOREVER("save")')
+    assert lua.eval("reloads") == 1
+
+
+def test_save_prompt_can_be_turned_off_and_skips_combat():
+    lua = run(BAGS_AND_BANK, 'SlashCmdList.SIMSARFOREVER("prompt off"); fire("BANKFRAME_OPENED"); fire("BANKFRAME_CLOSED")')
+    assert len(lua.eval("popups")) == 0
+    lua = run(BAGS_AND_BANK, 'inCombat = true; fire("BANKFRAME_OPENED"); fire("BANKFRAME_CLOSED")')
+    assert len(lua.eval("popups")) == 0
+
+
+def test_closing_a_profession_window_with_new_recipes_offers_a_save():
+    lua = run(FOREVER_MODERN, 'fire("TRADE_SKILL_SHOW"); fire("TRADE_SKILL_CLOSE")')
+    assert list(lua.eval("popups").values()) == ["recipes"]

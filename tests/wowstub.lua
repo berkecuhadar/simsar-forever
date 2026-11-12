@@ -18,6 +18,10 @@ function UnitFactionGroup() return "Alliance" end
 function UnitName() return "Tester" end
 function UnitClass() return "Hunter", "HUNTER" end
 function GetMoney() return 123456 end
+popups, reloads, inCombat = {}, 0, false
+function StaticPopup_Show(name, arg) popups[#popups + 1] = arg end
+function ReloadUI() reloads = reloads + 1 end
+function InCombatLockdown() return inCombat end
 WorldFrame = {}
 SlashCmdList = {}
 C_Timer = { After = function(_, fn) fn() end }

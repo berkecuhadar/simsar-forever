@@ -467,12 +467,40 @@ local function status()
     .. chars .. " characters. Type /reload to write them to disk.")
 end
 
+-- The game only writes SavedVariables on /reload, logout or a character switch, and no addon can
+-- force it. After a bank visit or new recipes we offer a one-click reload, at most every ten
+-- minutes and never in combat.
+local PROMPT_INTERVAL = 600
+local lastPrompt = 0
+
+StaticPopupDialogs = StaticPopupDialogs or {}
+StaticPopupDialogs.SIMSAR_FOREVER_SAVE = {
+  text = "Simsar Forever has new %s.\nReload the interface now to send it to the dashboard?",
+  button1 = "Reload now",
+  button2 = "Later",
+  OnAccept = function() ReloadUI() end,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
+
+local function offerSave(what)
+  local d = db()
+  d.settings = d.settings or {}
+  if d.settings.prompt == false then return end
+  if InCombatLockdown and InCombatLockdown() then return end
+  if time() - lastPrompt < PROMPT_INTERVAL then return end
+  lastPrompt = time()
+  if StaticPopup_Show then StaticPopup_Show("SIMSAR_FOREVER_SAVE", what) end
+end
+
 local frame = CreateFrame("Frame")
 for _, event in ipairs({ "PLAYER_LOGIN", "TRADE_SKILL_SHOW", "TRADE_SKILL_UPDATE", "TRADE_SKILL_LIST_UPDATE",
   "TRADE_SKILL_DATA_SOURCE_CHANGED", "CRAFT_SHOW", "CRAFT_UPDATE", "TRAINER_SHOW", "TRAINER_UPDATE",
   "MAIL_INBOX_UPDATE", "MERCHANT_SHOW", "MERCHANT_UPDATE", "BAG_UPDATE_DELAYED", "PLAYER_MONEY",
   "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "PLAYERBANKBAGSLOTS_CHANGED",
-  "PLAYER_LOGOUT" }) do
+  "PLAYER_LOGOUT", "TRADE_SKILL_CLOSE", "CRAFT_CLOSE" }) do
   pcall(frame.RegisterEvent, frame, event)
 end
 
@@ -514,11 +542,14 @@ frame:SetScript("OnEvent", function(_, event)
     bankOpen = true
     later("bank", function() scanBank(); scanBags() end)
   elseif event == "BANKFRAME_CLOSED" then
+    if bankOpen then offerSave("bank data") end
     bankOpen = false
   elseif event == "PLAYERBANKSLOTS_CHANGED" or event == "PLAYERBANKBAGSLOTS_CHANGED" then
     later("bank", scanBank)
   elseif event == "PLAYER_LOGOUT" then
     pcall(scanBags)
+  elseif event == "TRADE_SKILL_CLOSE" or event == "CRAFT_CLOSE" then
+    if announced then offerSave("recipes") end
   elseif event == "MERCHANT_SHOW" or event == "MERCHANT_UPDATE" then
     later("merchant", onMerchantShow)
   else
@@ -528,7 +559,7 @@ frame:SetScript("OnEvent", function(_, event)
       -- The modern profession window fills in after it opens, so announce on the first update with data.
       if n > 0 and not announced then
         announced = true
-        say(n .. " recipes saved. /reload to write them to disk.")
+        say(n .. " recipes saved. Type /sfe save (or log out) to send them to the dashboard.")
       end
     end)
   end
@@ -540,6 +571,13 @@ SlashCmdList.SIMSARFOREVER = function(arg)
   arg = (arg or ""):lower()
   if arg == "diag" then
     diag()
+  elseif arg == "save" then
+    ReloadUI()
+  elseif arg == "prompt off" or arg == "prompt on" then
+    local d = db()
+    d.settings = d.settings or {}
+    d.settings.prompt = arg == "prompt on"
+    say("save prompt " .. (d.settings.prompt and "on" or "off") .. ".")
   elseif arg == "reset" then
     SimsarForeverExportDB = {}
     say("cleared. /reload to write the empty file.")
@@ -547,5 +585,6 @@ SlashCmdList.SIMSARFOREVER = function(arg)
     local n = readProfessionWindow()
     if n > 0 then say(n .. " recipes read from the open profession window.") end
     status()
+    say("/sfe save writes everything to disk now (reloads the interface). /sfe prompt off|on, /sfe diag.")
   end
 end
