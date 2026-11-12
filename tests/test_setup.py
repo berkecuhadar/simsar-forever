@@ -85,7 +85,7 @@ def test_install_addon_endpoint(client):
     (game / "Interface" / "AddOns").mkdir(parents=True)
     r = c.post("/api/setup/install-addon", json={"game_dir": str(game)})
     assert r.status_code == 200
-    assert (game / "Interface" / "AddOns" / "SimsarForeverExport" / "SimsarForeverExport.lua").exists()
+    assert (game / "Interface" / "AddOns" / "SimsarForever" / "SimsarForever.lua").exists()
     assert c.post("/api/setup/install-addon", json={"game_dir": str(tmp / "nope")}).status_code == 400
 
 
@@ -114,9 +114,22 @@ def test_install_removes_the_old_addon_name(tmp_path):
     (old / "SimsarExport.toc").write_text("## Title: Simsar Export\n")
     other = addons / "SomeoneElsesAddon"
     other.mkdir()
+    export = addons / "SimsarForeverExport"
+    export.mkdir()
+    (export / "SimsarForeverExport.toc").write_text("## Title: Simsar Forever Export\n")
     addon_install.install(tmp_path)
-    assert not old.exists() and other.exists()
-    assert (addons / "SimsarForeverExport" / "SimsarForeverExport.toc").exists()
+    assert not old.exists() and not export.exists() and other.exists()
+    new = addons / "SimsarForever"
+    assert (new / "SimsarForever.toc").exists() and (new / "Tooltip.lua").exists()
+
+
+def test_update_keeps_the_tooltip_data(tmp_path):
+    from simsar_forever import addon_install
+    (tmp_path / "Interface" / "AddOns").mkdir(parents=True)
+    target = addon_install.install(tmp_path)
+    (target / "SimsarForeverData.lua").write_text("SimsarForeverData = { items = {} }\n")
+    addon_install.install(tmp_path)
+    assert "items" in (target / "SimsarForeverData.lua").read_text()
 
 
 def test_background_waits_after_a_recent_tsm_check(tmp_path, monkeypatch):

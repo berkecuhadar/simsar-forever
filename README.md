@@ -70,7 +70,8 @@ cannot be mistaken for the real market.
 1. **Auctionator full scan.** Open the auction house and run a full scan. To scan automatically
    whenever you open the auction house, enable *Start autoscan when the auction house is opened*
    under `/auctionator config` → Basic.
-2. **Install SimsarForeverExport** (once, and again after updating Simsar Forever):
+2. **Install the Simsar Forever addon** (once, and again after updating Simsar Forever): press
+   *Install addon* on the dashboard's Settings page, or run
 
    ```powershell
    .venv\Scripts\python -m simsar_forever install-addon
@@ -78,18 +79,35 @@ cannot be mistaken for the real market.
 
    It records, into its own SavedVariables file:
    - all recipes of the profession window you open (on clients with the modern profession API this
-     includes recipes you have not learned yet), trainer recipes, and recipes shown in tooltips;
-   - the bags of every character you log in with, and the bank whenever you open it, plus gold;
+     includes recipes you have not learned yet), trainer recipes with their cost and required skill,
+     recipes shown in tooltips, and recipes vendors sell;
+   - each character's profession skill levels and which recipes that character knows;
+   - the bags of every character you log in with, and the bank whenever you open it;
+   - a gold ledger: every change of gold, booked under what you were doing (auction sale, auction
+     purchase, deposit, vendor, repair, mail, gold sent between your own characters, quest, loot,
+     trainer, taxi, ...), and the gold on hand at the end of each day;
+   - auction mail: sales (used to double-check the auction house cut), purchases with the price
+     paid, and expired or cancelled auctions;
    - the icon id of every item, so the dashboard can show item icons;
-   - sale invoices from your mailbox, used to double-check the auction house cut;
    - vendor prices of unlimited items (thread, salt, dyes) when you open a vendor.
 
-   Type `/sfe` for a summary and `/sfe diag` to see which game APIs are available.
+   It also adds the dashboard's advice to item tooltips: what one sale on the auction house leaves
+   you, how many sell per day, whether to sell now, vendor or hold, and what crafting it makes. The
+   dashboard writes that data into the addon folder while it runs; the game loads it on login or
+   `/reload`. `/sfe tooltip off` hides it.
+
+   Type `/sfe` for a summary and `/sfe diag` to see which game APIs are available. Before 0.2.0 the
+   addon was called SimsarForeverExport; installing the new one removes the old folder, and the old
+   addon's saved data is still read, so nothing is lost.
 3. **Save.** The game writes addon data to disk only on `/reload`, logout or a character switch; no
-   addon can make it write sooner. Logging out is enough. To send data right away, type `/sfe save`,
-   or click "Reload now" on the small prompt the addon shows after a bank visit or new recipes (at
-   most every ten minutes, never in combat; `/sfe prompt off` turns it off). Simsar Forever picks up
-   the new files within seconds; there is nothing to do on the dashboard side.
+   addon can make it write sooner. Logging out is enough. To send data right away, type `/reload`
+   yourself; the addon never reloads the interface for you. After a bank visit or new recipes it
+   reminds you in chat and on screen (at most every ten minutes; `/sfe prompt off` turns it off).
+   Characters you are not logged in with keep their last saved bags, bank and gold. Simsar Forever
+   picks up the new files within seconds; there is nothing to do on the dashboard side.
+
+If you use [Accountant Classic](https://www.curseforge.com/wow/addons/accountant-classic), its gold
+history is imported too, so the ledger reaches back to before the Simsar Forever addon was installed.
 
 ## Data sources
 
@@ -98,7 +116,8 @@ cannot be mistaken for the real market.
 | TSM auction house file `forever/<region>/realm/<realm>-<faction>` | cheapest listing, market value, historical | about every 3 hours |
 | TSM region file `forever/<region>/region` | average sale price, sale rate, sales per day | about daily |
 | `Auctionator.lua` | your scans: cheapest price, daily low/high, units on sale, your posts, vendor prices | when you scan and `/reload` |
-| `SimsarForeverExport.lua` | recipes, vendor buy prices, bags, bank, gold, item icons, invoices | when you `/reload` |
+| `SimsarForever.lua` | recipes, professions, vendor prices, bags, bank, gold ledger, item icons, auction mail | when you `/reload` |
+| `Accountant_Classic.lua` | gold history from the Accountant Classic addon, if you use it | when you `/reload` |
 | render.worldofwarcraft.com | item and coin icons, cached in `data/icons` | first time an icon is shown |
 
 TSM's files are public and need no key: <https://tradeskillmaster.com/public-data>. They are
@@ -132,7 +151,7 @@ simsar-forever serve            start the dashboard (what start.bat runs)
 simsar-forever refresh          fetch TSM data and import SavedVariables once
 simsar-forever top [--by sell]  print the best opportunities in the terminal
 simsar-forever inspect-ato      describe your Auctionator.lua, useful when its format changes
-simsar-forever install-addon    copy SimsarForeverExport into the game's AddOns folder
+simsar-forever install-addon    copy the Simsar Forever addon into the game's AddOns folder
 simsar-forever demo             build and serve the demo database
 ```
 
@@ -155,9 +174,12 @@ numbering matches its source code. Still unverified:
   are kept) to turn the game's icon ids into names. Icons Forever added after the listfile was
   last updated show as blank squares.
 - **The bank** is only as current as the last time you opened it in game.
-- **SimsarForeverExport on the Forever client.** The addon is tested against a simulated API only. The
+- **The addon on the Forever client.** The addon is tested against a simulated API only. The
   profession, trainer, mail and auction APIs it relies on are each wrapped so a missing one cannot
   break the others; `/sfe diag` shows what works.
+- **Ledger categories** come from the window that is open when gold changes. Gold that changes with
+  no window open is booked as "Other", and gold that changed while the addon was not running is
+  booked once at the next login as "Untracked".
 - **The 60-day historical price.** On a server that launched on 4 November 2026 it still holds
   launch-week prices, so cheapness is measured against the two-week market value by default.
 - **Early history.** Volatility and trend need several days of data and stay blank until then.
@@ -183,7 +205,7 @@ The browser test uses Edge or Chrome if one is installed and is skipped otherwis
 .venv\Scripts\python scripts\build_release.py --test
 ```
 
-Writes `dist/simsar-forever-<version>.zip` (app with the built UI), `dist/SimsarForeverExport-<version>.zip`
+Writes `dist/simsar-forever-<version>.zip` (app with the built UI), `dist/SimsarForever-<version>.zip`
 (the addon, ready for CurseForge) and `dist/SHA256SUMS.txt`. Bump the version in
 `simsar_forever/__init__.py`, `pyproject.toml`, `frontend/package.json` and the addon `.toc` together;
 the script refuses to build when they disagree or the working tree is not committed.

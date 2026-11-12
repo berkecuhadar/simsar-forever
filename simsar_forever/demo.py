@@ -119,7 +119,8 @@ def build(conn, days=14, seed=7, now=None):
     chars = [("Leatherhand-Demo", "Leatherhand (demo)", "HUNTER", 1_234_500),
              ("Threadbare-Demo", "Threadbare (demo)", "MAGE", 87_650)]
     for key, name, cls, money in chars:
-        conn.execute("INSERT INTO characters VALUES(?,?,?,?,?,?,?,?)",
+        conn.execute("INSERT INTO characters(char_key, name, realm, class, faction, money, bags_at, bank_at) "
+                     "VALUES(?,?,?,?,?,?,?,?)",
                      (key, name, "Demo Realm", cls, "Alliance", money, now - 600, now - 86400))
     holdings = [
         ("Leatherhand-Demo", "bags", "Light Leather", 60), ("Leatherhand-Demo", "bags", "Medium Leather", 35),

@@ -142,7 +142,7 @@ export default function Inventory() {
       {data.characters.length === 0 ? (
         <div className="card empty-state">
           <h3>No characters yet</h3>
-          <p>Log in with SimsarForeverExport enabled, open your bags and your bank, then type <code>/reload</code>.</p>
+          <p>Log in with the Simsar Forever addon enabled, open your bags and your bank, then type <code>/reload</code>.</p>
         </div>
       ) : (
         <>

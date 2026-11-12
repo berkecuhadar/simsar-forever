@@ -1,4 +1,4 @@
--- Minimal stand-in for the WoW client API, enough to load and drive SimsarForeverExport.lua.
+-- Minimal stand-in for the WoW client API, enough to load and drive the Simsar Forever addon.
 -- Each test defines the profession/AH functions it needs before loading the addon.
 
 frames = {}
@@ -12,14 +12,23 @@ function print(...)
 end
 
 function time() return now end
+clock = 100
+function GetTime() return clock end
+function date(fmt, t) return os.date(fmt, t or now) end
+zone = "Stormwind City"
+function GetZoneText() return zone end
 function GetBuildInfo() return "1.60.1", "60001", "Nov 1 2026", 16001 end
 function GetRealmName() return "Normal" end
 function UnitFactionGroup() return "Alliance" end
 function UnitName() return "Tester" end
 function UnitClass() return "Hunter", "HUNTER" end
-function GetMoney() return 123456 end
+money = 123456
+function GetMoney() return money end
 reloads, inCombat = 0, false
 function ReloadUI() reloads = reloads + 1 end
+C_UI = { Reload = ReloadUI }
+errorsShown = {}
+UIErrorsFrame = { AddMessage = function(_, text) errorsShown[#errorsShown + 1] = text end }
 -- Blizzard's popup system; the addon must leave it alone (see test_addon_never_touches_blizzard_popups).
 StaticPopupDialogs = setmetatable({}, { __newindex = function() error("addon wrote to StaticPopupDialogs") end })
 function StaticPopup_Show() error("addon used StaticPopup_Show") end
@@ -54,7 +63,11 @@ function newFrame(name)
   function f:SetWidth() end
   function f:SetPoint() end
   function f:SetFrameStrata() end
-  function f:HookScript(what, fn) self.hooks[what] = fn end
+  function f:HookScript(what, fn)
+    local prev = self.hooks[what]
+    self.hooks[what] = prev and function(...) prev(...); fn(...) end or fn
+  end
+  function f:AddLine(text) self.added = self.added or {}; self.added[#self.added + 1] = text end
   function f:SetOwner() end
   function f:ClearLines() self.lines = {} end
   function f:NumLines() return #self.lines end
@@ -109,5 +122,5 @@ local function serialize(v, indent)
 end
 
 function savedVariables()
-  return "SimsarForeverExportDB = " .. serialize(SimsarForeverExportDB) .. "\n"
+  return "SimsarForeverDB = " .. serialize(SimsarForeverDB) .. "\n"
 end

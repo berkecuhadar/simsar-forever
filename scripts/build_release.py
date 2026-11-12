@@ -5,7 +5,7 @@
 
 Produces:
     dist/simsar-forever-<version>.zip          the app, with the web UI already built (no Node.js needed)
-    dist/SimsarForeverExport-<version>.zip     the in-game addon, laid out for CurseForge
+    dist/SimsarForever-<version>.zip           the in-game addon, laid out for CurseForge
     dist/SHA256SUMS.txt
 """
 
@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 STATIC = ROOT / "simsar_forever" / "web" / "static"
-ADDON = ROOT / "addon" / "SimsarForeverExport"
+ADDON = ROOT / "addon" / "SimsarForever"
 
 
 def run(cmd, cwd=ROOT):
@@ -35,7 +35,7 @@ def versions():
                                                 (ROOT / "simsar_forever" / "__init__.py").read_text()).group(1),
         "pyproject.toml": re.search(r'^version = "([^"]+)"', (ROOT / "pyproject.toml").read_text(), re.M).group(1),
         "frontend/package.json": re.search(r'"version": "([^"]+)"', (ROOT / "frontend" / "package.json").read_text()).group(1),
-        "addon .toc": re.search(r"^## Version: (\S+)", (ADDON / "SimsarForeverExport.toc").read_text(), re.M).group(1),
+        "addon .toc": re.search(r"^## Version: (\S+)", (ADDON / "SimsarForever.toc").read_text(), re.M).group(1),
     }
     if len(set(found.values())) != 1:
         sys.exit("Version numbers disagree: " + ", ".join(f"{k}={v}" for k, v in found.items()))
@@ -74,12 +74,12 @@ def build_app_zip(version):
 
 
 def build_addon_zip(version):
-    target = DIST / f"SimsarForeverExport-{version}.zip"
+    target = DIST / f"SimsarForever-{version}.zip"
     with zipfile.ZipFile(target, "w") as zf:
         for f in sorted(ADDON.rglob("*")):
             if f.is_file():
-                add(zf, f, f"SimsarForeverExport/{f.relative_to(ADDON).as_posix()}")
-        add(zf, ROOT / "LICENSE", "SimsarForeverExport/LICENSE")
+                add(zf, f, f"SimsarForever/{f.relative_to(ADDON).as_posix()}")
+        add(zf, ROOT / "LICENSE", "SimsarForever/LICENSE")
     return target
 
 

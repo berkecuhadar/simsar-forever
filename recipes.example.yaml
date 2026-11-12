@@ -1,4 +1,4 @@
-# Hand-written recipes, used only for recipes the SimsarForeverExport addon has not reported.
+# Hand-written recipes, used only for recipes the Simsar Forever addon has not reported.
 # Copy this file to recipes.yaml (ignored by git) and edit it.
 #
 # Names must match the item names in TSM data exactly. Set verified: true once you have checked a

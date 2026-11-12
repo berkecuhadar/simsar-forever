@@ -1,0 +1,10 @@
+## Interface: 16001, 11508, 11509
+## Title: Simsar Forever
+## Notes: Market advice in item tooltips, and recipes, professions, bags, gold and auction mail for the Simsar Forever dashboard.
+## Author: Berke
+## Version: 0.1.2
+## SavedVariables: SimsarForeverDB
+
+SimsarForeverData.lua
+SimsarForever.lua
+Tooltip.lua

@@ -129,14 +129,14 @@ export default function Crafts() {
           Every known recipe priced at today's market. <b>Profit</b> assumes you buy all materials;
           <b> vs selling mats</b> compares crafting with simply selling the materials you already have. Click a row for
           the material breakdown.
-          <Hint text="Each material is priced at the cheaper of the auction house and a vendor. Vendor prices are recorded by the SimsarForeverExport addon whenever you open a vendor window." />
+          <Hint text="Each material is priced at the cheaper of the auction house and a vendor. Vendor prices are recorded by the Simsar Forever addon whenever you open a vendor window." />
         </p>
       </div>
       {data && !data.length && (
         <div className="card empty-state">
           <h3>No recipes yet</h3>
           <p>
-            {status?.demo ? "The demo has no recipes." : <>Install the <b>SimsarForeverExport</b> addon (see README), open each
+            {status?.demo ? "The demo has no recipes." : <>Install the <b>Simsar Forever</b> addon (see README), open each
             profession window and the profession trainer in game, then type <code>/reload</code>. Simsar Forever picks the file
             up within seconds. You can also add recipes by hand in <code>recipes.yaml</code>.</>}
           </p>

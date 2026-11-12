@@ -17,8 +17,8 @@ Settings referred to below live in `config.yaml` (defaults in `config.example.ya
 | `sold_per_day_region` | TSM region `soldPerDay` | Units sold per day, region-wide. |
 | Auctionator price | `AUCTIONATOR_PRICE_DATABASE` `m` | Last minimum price your client saw. |
 | Auctionator daily | `h`, `l`, `a` per scan day | Highest and lowest minimum price of the day, most units seen. |
-| `vendor_sell` | Auctionator vendor cache, SimsarForeverExport | What a vendor pays you. |
-| `vendor_buy` | SimsarForeverExport (merchant windows) | What a vendor charges. Only unlimited-stock items. |
+| `vendor_sell` | Auctionator vendor cache, Simsar Forever addon | What a vendor pays you. |
+| `vendor_buy` | Simsar Forever addon (merchant windows) | What a vendor charges. Only unlimited-stock items. |
 
 ## Prices
 
@@ -54,7 +54,7 @@ net_sell        = net_per_sale(sell_price)
 
 Listing deposits are deliberately left out: they are refunded when an item sells, and Simsar
 Forever does not try to guess how often your listings expire. Items with a low sale rate are flagged
-in the commentary instead. SimsarForeverExport still records sale mails; when the cut they show
+in the commentary instead. The addon still records sale mails; when the cut they show
 differs from the configured one, the data status page says so.
 
 ## Volume
@@ -183,8 +183,8 @@ pushes the price down; Simsar Forever treats prices as fixed.
 
 ## Bags and bank
 
-SimsarForeverExport saves every character's bags whenever they change and the bank whenever it is
-opened (the game writes both to disk on `/reload` or logout). For each item held:
+The Simsar Forever addon saves every character's bags whenever they change and the bank whenever it
+is opened (the game writes both to disk on `/reload` or logout). For each item held:
 
 ```
 tradable = count - soulbound

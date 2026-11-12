@@ -223,7 +223,8 @@ def test_inventory_values_at_todays_prices():
     conn = _db_with_item()                                   # Light Leather: you keep 950 per sale
     conn.execute("INSERT INTO items(item_id, name, vendor_sell) VALUES(2, 'Hearthstone', 0)")
     conn.execute("INSERT INTO items(item_id, name, vendor_sell) VALUES(3, 'Grey Junk', 40)")
-    conn.execute("INSERT INTO characters VALUES('Tester-Realm', 'Tester', 'Realm', 'HUNTER', 'Alliance', 5000, 1, 2)")
+    conn.execute("INSERT INTO characters(char_key, name, realm, class, faction, money, bags_at, bank_at) "
+                 "VALUES('Tester-Realm', 'Tester', 'Realm', 'HUNTER', 'Alliance', 5000, 1, 2)")
     conn.executemany("INSERT INTO inventory VALUES('Tester-Realm', ?, ?, ?, ?)",
                      [("bags", 1, 10, 0), ("bank", 1, 5, 2), ("bags", 2, 1, 1), ("bags", 3, 3, 0)])
     items = market.build(conn, cfg(), FEES, now=NOW)

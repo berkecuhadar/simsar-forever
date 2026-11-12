@@ -5,9 +5,10 @@ TSM public CSVs ──► tsm.py ─────────┐
                                     │
 Auctionator.lua ──► auctionator.py ─┤                         ┌─► web/app.py (FastAPI, /api/*)
                     (lua.py, CBOR)  ├─► SQLite (db.py) ─► analysis/engine.py
-SimsarForeverExport.lua ─► addon_import.py ┘                         └─► cli.py (simsar-forever top)
-                                                                        │
-                                                    frontend/ (React) ◄─┘ built into web/static
+SimsarForever.lua ► addon_import.py ┤                         ├─► cli.py (simsar-forever top)
+Accountant_Classic.lua ► accountant ┘                         │
+                                                              └─► tooltip_data.py ─► AddOns/SimsarForever
+                                                    frontend/ (React) ◄─ web/app.py, built into web/static
 ```
 
 ## Modules
@@ -19,13 +20,15 @@ SimsarForeverExport.lua ─► addon_import.py ┘                         └�
 | `simsar_forever/lua.py` | Data-only SavedVariables parser. Keeps binary strings intact. |
 | `simsar_forever/tsm.py` | Downloads and parses TSM CSVs with retries, ETags and duplicate-scan skip. |
 | `simsar_forever/auctionator.py` | Reads Auctionator's price database (CBOR), posting history, vendor cache. |
-| `simsar_forever/addon_import.py` | Reads SimsarForeverExport data and derives measured AH fees. |
+| `simsar_forever/addon_import.py` | Reads the addon's data (and the old SimsarForeverExport file) and derives measured AH fees. |
+| `simsar_forever/accountant.py` | Reads Accountant Classic's gold history into the ledger. |
+| `simsar_forever/tooltip_data.py` | Writes `SimsarForeverData.lua` into the installed addon for tooltip advice. |
 | `simsar_forever/refresh.py` | One-shot refresh and the background thread (TSM polling, file watching, alerts). |
 | `simsar_forever/groups.py`, `simsar_forever/data/groups.yaml` | Profession groups by item name pattern. |
 | `simsar_forever/analysis/` | Fees, robust statistics, the item table, crafts, commentary, alerts, cached engine. |
 | `simsar_forever/web/` | FastAPI app and the status panel builder. Serves the built UI from `web/static`. |
 | `simsar_forever/demo.py` | Synthetic demo data. |
-| `addon/SimsarForeverExport/` | In-game addon. |
+| `addon/SimsarForever/` | In-game addon: data export (`SimsarForever.lua`) and tooltip advice (`Tooltip.lua`). |
 | `frontend/` | React + TypeScript UI (Vite, ECharts, TanStack Table). |
 
 ## Data flow
@@ -33,13 +36,17 @@ SimsarForeverExport.lua ─► addon_import.py ┘                         └�
 1. The background thread checks TSM every `tsm.check_minutes`. A new scan (new `updatedAt`) is
    stored as one row per item in `tsm_realm` or `tsm_region`, so price history accumulates.
    Unchanged files are skipped by ETag and by `updatedAt`.
-2. Every `wow.watch_seconds` it compares the size and modification time of `Auctionator.lua` and
-   `SimsarForeverExport.lua` with the last import and re-imports changed files. The game only writes these
-   files on `/reload`, logout or exit.
+2. Every `wow.watch_seconds` it compares the size and modification time of `Auctionator.lua`,
+   `SimsarForever.lua`, `SimsarForeverExport.lua` (the addon's name before 0.2.0) and
+   `Accountant_Classic.lua` with the last import and re-imports changed files. The game only writes
+   these files on `/reload`, logout or exit.
 3. Each import bumps `data_version` in the `meta` table. The analysis engine caches its result and
    rebuilds only when `data_version` changes (about 0.3 s for 6,000 items).
 4. After a rebuild the thread generates alerts and stores them with a per-day dedupe key. The UI
    polls `/api/status` every 30 seconds and shows browser notifications for new alerts.
+5. It also rewrites `Interface/AddOns/SimsarForever/SimsarForeverData.lua` with the latest prices and
+   advice, which the addon shows in item tooltips after the next `/reload`. Updating the addon keeps
+   this file.
 
 ## Auctionator format changes
 

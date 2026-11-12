@@ -3,7 +3,7 @@ import sqlite3
 import time
 from pathlib import Path
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS items(
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS recipe_reagents(
   PRIMARY KEY(recipe_key, item_id, name)
 );
 
--- Sold-auction mail invoices captured by the SimsarForeverExport addon.
+-- Sold-auction mail invoices captured by the Simsar Forever addon.
 CREATE TABLE IF NOT EXISTS ah_invoices(
   seen_at INTEGER, item_name TEXT, quantity INTEGER,
   bid INTEGER, buyout INTEGER, deposit INTEGER, consignment INTEGER,
@@ -90,8 +90,8 @@ CREATE TABLE IF NOT EXISTS alerts(
   title TEXT, message TEXT, seen INTEGER DEFAULT 0
 );
 
--- Characters and what they carry, from SimsarForeverExport. The bank is only known from the last
--- time it was opened.
+-- Characters and what they carry, from the Simsar Forever addon. The bank is only known from the
+-- last time it was opened.
 CREATE TABLE IF NOT EXISTS characters(
   char_key TEXT PRIMARY KEY, name TEXT, realm TEXT, class TEXT, faction TEXT,
   money INTEGER, bags_at INTEGER, bank_at INTEGER
@@ -100,6 +100,56 @@ CREATE TABLE IF NOT EXISTS characters(
 CREATE TABLE IF NOT EXISTS inventory(
   char_key TEXT, location TEXT, item_id INTEGER, count INTEGER, bound INTEGER,
   PRIMARY KEY(char_key, location, item_id)
+) WITHOUT ROWID;
+
+-- Auction mail other than sales: purchases ("bought"), expired and cancelled auctions.
+CREATE TABLE IF NOT EXISTS mail_events(
+  mail_key TEXT PRIMARY KEY, kind TEXT, seen_at INTEGER, char_key TEXT,
+  item_name TEXT, item_id INTEGER, quantity INTEGER, amount INTEGER
+);
+
+-- Profession skill per character, and which recipes each character knows.
+CREATE TABLE IF NOT EXISTS char_professions(
+  char_key TEXT, profession TEXT, rank INTEGER, max_rank INTEGER, seen_at INTEGER,
+  PRIMARY KEY(char_key, profession)
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS char_recipes(
+  char_key TEXT, recipe_key TEXT, learned INTEGER,
+  PRIMARY KEY(char_key, recipe_key)
+) WITHOUT ROWID;
+
+-- Recipes vendors sell (often limited stock), seen while a vendor window was open.
+CREATE TABLE IF NOT EXISTS vendor_recipes(
+  item_id INTEGER PRIMARY KEY, name TEXT, price INTEGER, limited INTEGER, vendor TEXT, zone TEXT,
+  seen_at INTEGER
+);
+
+-- Gold ledger: income and spending per character, day and category. `source` is 'simsar' (this
+-- addon) or 'accountant' (imported from Accountant Classic); for a character and day the Simsar
+-- rows win when both exist.
+CREATE TABLE IF NOT EXISTS ledger_days(
+  char_key TEXT, day INTEGER, category TEXT, source TEXT,
+  income INTEGER, expense INTEGER, n INTEGER,
+  PRIMARY KEY(char_key, day, category, source)
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS ledger_tx(
+  char_key TEXT, t INTEGER, amount INTEGER, category TEXT, source TEXT, zone TEXT,
+  PRIMARY KEY(char_key, t, amount, category, source)
+) WITHOUT ROWID;
+
+-- Gold on hand at the end of each day.
+CREATE TABLE IF NOT EXISTS balances(
+  char_key TEXT, day INTEGER, source TEXT, balance INTEGER,
+  PRIMARY KEY(char_key, day, source)
+) WITHOUT ROWID;
+
+-- Forecasts the sell advice made, scored once the real price is known.
+CREATE TABLE IF NOT EXISTS forecasts(
+  item_id INTEGER, made_day INTEGER, horizon INTEGER, base REAL, predicted REAL, low REAL, high REAL,
+  advice TEXT, actual REAL,
+  PRIMARY KEY(item_id, made_day, horizon)
 ) WITHOUT ROWID;
 
 CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT);
@@ -120,11 +170,20 @@ def connect(path):
     return conn
 
 
+MIGRATIONS = {
+    "items": (("vendor_buy", "REAL"), ("quality", "INTEGER"), ("icon_id", "INTEGER")),
+    "recipes": (("trainer_cost", "INTEGER"), ("skill_req", "INTEGER")),
+    "characters": (("money_at", "INTEGER"),),
+    "ah_invoices": (("char_key", "TEXT"),),
+}
+
+
 def migrate(conn):
-    cols = {r[1] for r in conn.execute("PRAGMA table_info(items)")}
-    for col, kind in (("vendor_buy", "REAL"), ("quality", "INTEGER"), ("icon_id", "INTEGER")):
-        if col not in cols:
-            conn.execute(f"ALTER TABLE items ADD COLUMN {col} {kind}")
+    for table, columns in MIGRATIONS.items():
+        cols = {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}
+        for col, kind in columns:
+            if col not in cols:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {kind}")
     conn.commit()
 
 

@@ -1,5 +1,37 @@
 # Changelog
 
+## Unreleased
+
+### Addon
+
+- **One addon: Simsar Forever.** SimsarForeverExport is now part of a single addon called Simsar
+  Forever (folder `SimsarForever`). Installing or updating removes the old folder; the old addon's
+  saved data is still imported, so nothing is lost.
+- **Tooltip advice.** Item tooltips show what one sale on the auction house leaves you, how many sell
+  per day on your realm, whether to sell now, vendor or hold, and what crafting the item makes. The
+  dashboard writes this data into the addon folder; the game loads it on login or `/reload`.
+  `/sfe tooltip off` hides it.
+- **Gold ledger.** Every change of gold is booked under what you were doing: auction sales, auction
+  purchases, deposits, vendor, repairs, mail, gold moved between your own characters, quests, loot,
+  trainer, taxi and more. The gold on hand at the end of each day is saved too.
+- **Professions.** Each character's skill levels and the recipes that character knows are saved
+  separately, so an alt opening a profession window no longer hides what your main has learned.
+  Trainer costs and required skill survive a later profession window read; recipe items record
+  their required skill, and recipes sold by vendors are saved even in limited stock.
+- **Auction mail.** Purchases (with the price paid) and expired or cancelled auctions are saved
+  next to sale invoices.
+- Bags, bank and gold of characters you are not logged in with are no longer wiped. The addon
+  scanned bags at logout, when the game has already emptied them and reports 0 gold, so every
+  character but the current one showed up empty. It now skips any scan while the bags are not
+  loaded and keeps each character's last good data.
+- The addon no longer reloads the interface. The "Reload now" window is gone and `/sfe save` only
+  tells you to type `/reload`; after a bank visit or new recipes the addon prints a reminder to
+  type `/reload` in chat and on screen.
+
+### Dashboard
+
+- Imports the gold history of Accountant Classic when that addon is installed.
+
 ## 0.1.2 (2026-11-12)
 
 - Fixed the game message "SimsarForeverExport has been blocked from an action only available to the

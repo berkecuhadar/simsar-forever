@@ -21,7 +21,7 @@ function InstallCard({ inst, selected, onPick }: { inst: Install; selected: bool
         <div className="muted small">
           {inst.is_forever ? "WoW Forever" : "Not a _forever_ folder"}
           {inst.auctionator_version ? `, Auctionator ${inst.auctionator_version}` : ", Auctionator not installed"}
-          {inst.export_addon_installed ? ", SimsarForeverExport installed" : ""}
+          {inst.export_addon_installed ? ", Simsar Forever addon installed" : ""}
           {`, ${inst.accounts.length} account${inst.accounts.length === 1 ? "" : "s"}`}
         </div>
       </div>
@@ -204,22 +204,23 @@ export default function Setup() {
         {inspected?.exists && inspected.has_wtf && (
           <div className="filters">
             <span className="small">
-              SimsarForeverExport addon:{" "}
-              {!inspected.export_addon_installed ? <span className="neg">not installed</span>
+              Simsar Forever addon:{" "}
+              {!inspected.export_addon_installed
+                ? <span className="neg">{inspected.legacy_addon_installed ? "old SimsarForeverExport installed; update to replace it" : "not installed"}</span>
                 : inspected.export_addon_version !== info.addon_version
                   ? <span className="neg">version {inspected.export_addon_version}, {info.addon_version} available</span>
                   : <span className="pos">installed ({inspected.export_addon_version})</span>}
-              <Hint text="The addon saves your recipes, vendor prices, bags and bank so the dashboard does not have to guess them. It only reads; it never posts, buys or clicks." />
+              <Hint text="The addon saves your recipes, professions, vendor prices, bags, bank and gold ledger so the dashboard does not have to guess them, and shows the dashboard's advice in item tooltips. It only reads; it never posts, buys or clicks." />
             </span>
-            {(!inspected.export_addon_installed || inspected.export_addon_version !== info.addon_version) && (
+            {(!inspected.export_addon_installed || inspected.legacy_addon_installed || inspected.export_addon_version !== info.addon_version) && (
               <button onClick={() => api.installAddon(inspected.path).then(
                 (r) => {
                   setAddonMsg(`Installed to ${r.path}. Enable it in the game's AddOns list, then /reload.`);
-                  toast("SimsarForeverExport installed.", "success");
+                  toast("Simsar Forever addon installed.", "success");
                   setGameDir(""); setTimeout(() => setGameDir(inspected.path), 50);
                 },
                 (e) => { setAddonMsg(String(e)); toast("The addon could not be installed.", "error"); })}>
-                {inspected.export_addon_installed ? "Update addon" : "Install addon"}
+                {inspected.export_addon_installed || inspected.legacy_addon_installed ? "Update addon" : "Install addon"}
               </button>
             )}
             {addonMsg && <span className="small muted">{addonMsg}</span>}

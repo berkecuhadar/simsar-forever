@@ -214,6 +214,7 @@ export interface Install {
   auctionator_version: string | null;
   export_addon_installed: boolean;
   export_addon_version: string | null;
+  legacy_addon_installed?: boolean;
   accounts: { name: string; has_auctionator: boolean; auctionator_mtime: number | null; has_export_addon: boolean }[];
   auctionator_realms?: { key: string; items: number }[];
 }
