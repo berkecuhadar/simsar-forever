@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import accountant, addon_import, auctionator, db, tsm, tooltip_data
 from .analysis import alerts
+from .analysis import forecast as forecastmod
 from .analysis.engine import bump_data_version
 
 log = logging.getLogger("simsar_forever")
@@ -195,6 +196,7 @@ class Background:
                     import_accountant(self.cfg, self.conn)
                     self.check_alerts()
                     self.write_tooltip_data()
+                    self.track_forecasts()
             except Exception:
                 log.exception("SavedVariables import failed")
             self.stop.wait(self.cfg["wow"]["watch_seconds"])
@@ -221,6 +223,20 @@ class Background:
             log.exception("Could not write the tooltip data file")
         db.set_meta(self.conn, "tooltip_version", version)
 
+    def track_forecasts(self):
+        """Keep today's forecasts of the items you care about, and score earlier ones."""
+        if db.get_meta(self.conn, "demo"):
+            return
+        version = db.get_meta(self.conn, "data_version")
+        if db.get_meta(self.conn, "forecast_version") == version:
+            return
+        result = self.engine.result()
+        ids = {i["item_id"] for i in result["items"] if i["groups"]}
+        ids |= {r[0] for r in self.conn.execute("SELECT DISTINCT item_id FROM inventory")}
+        forecastmod.score(self.conn)
+        forecastmod.record(self.conn, result["forecast"], result["advice"], ids)
+        db.set_meta(self.conn, "forecast_version", version)
+
     def refresh_now(self):
         with self.tsm_lock:
             tsm_report = fetch_tsm(self.cfg, self.tsm_conn)
@@ -231,4 +247,5 @@ class Background:
                    "accountant": import_accountant(self.cfg, self.conn, force=True)}
             self.check_alerts()
             self.write_tooltip_data()
+            self.track_forecasts()
             return out

@@ -9,6 +9,8 @@ price history in SQLite, and answers practical questions in a web page on your o
 - Which recipes are worth crafting, and is crafting better than selling the materials?
 - What is everything in my characters' bags and banks worth at today's prices?
 - Where did my gold come from and go, per character, day and category, and how has it grown?
+- Should I sell what I hold now, a few at a time, to a vendor, or wait, and how often has that
+  advice been right?
 - How long does a recipe take to pay for itself?
 - What is cheap right now, and is it cheap or just falling?
 - Does this price snap back, where is it heading, how sensitive are buyers to it, and when in the
@@ -138,6 +140,7 @@ Everything has a default; `config.example.yaml` documents each setting. The ones
 | `economy.auction_house` | `faction` | `faction` (Alliance/Horde, 5% cut) or `neutral` (15% cut). Set in Settings. |
 | `icons.enabled` | true | Item and coin icons from Blizzard's CDN. |
 | `analysis.reference_price` | `market` | What "cheap" is measured against; see below. |
+| `advice.*` | | When the sell plan says hold or sell gradually; see docs/metrics.md. |
 | `alerts.*` |  | When to raise cheap-item and craft alerts. |
 
 `groups.yaml` and `recipes.yaml` next to `config.yaml` override the built-in profession groups and

@@ -1,8 +1,12 @@
-"""What the items in your characters' bags and banks are worth at today's prices."""
+"""What the items in your characters' bags and banks are worth at today's prices, and what to do with them."""
+
+from . import sellplan
 
 
-def build(conn, result):
+def build(conn, result, cfg=None):
     by_id, fees = result["by_id"], result["fees"]
+    fc = result.get("forecast") or {"items": {}, "backtest": {}}
+    allowed = sellplan.hold_allowed(fc, cfg) if cfg else False
     info = {r["item_id"]: dict(r) for r in conn.execute(
         "SELECT item_id, name, vendor_sell, quality, icon_id FROM items")}
     chars = {r["char_key"]: dict(r) for r in conn.execute("SELECT * FROM characters ORDER BY name")}
@@ -51,6 +55,8 @@ def build(conn, result):
             "my_sales_per_day": spd,
             "days_to_sell": tradable / spd if spd and tradable else None,
             "flags": it.get("flags", []),
+            **({"plan": sellplan.advise({**it, "vendor_sell": vendor}, fc["items"].get(item_id), cfg, allowed,
+                                        quantity=count, bound=bound)} if cfg else {}),
         })
         t = totals.setdefault(char_key, {"ah_value": 0.0, "vendor_value": 0.0, "value": 0.0, "items": 0})
         t["ah_value"] += ah_value or 0

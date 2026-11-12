@@ -7,7 +7,8 @@ from .. import addon_import, db
 from .. import groups as groupmod
 from . import crafts as craftmod
 from . import fees as feemod
-from . import market
+from . import forecast as forecastmod
+from . import market, sellplan
 
 
 def bump_data_version(conn):
@@ -39,7 +40,10 @@ class Engine:
         recipe_items = craftmod.product_items_by_profession(recipes)
         items = market.build(self.conn, self.cfg, fees, self.groups, recipe_items)
         crafts = craftmod.analyse(recipes, items, fees)
+        fc = forecastmod.build(self.conn, self.cfg)
         return {
+            "forecast": fc,
+            "advice": sellplan.advice_all(items, fc, self.cfg),
             "items": items,
             "by_id": {i["item_id"]: i for i in items},
             "crafts": crafts,

@@ -10,30 +10,27 @@ import Glossary from "./pages/Glossary";
 import Inventory from "./pages/Inventory";
 import ItemPage from "./pages/ItemPage";
 import Ledger from "./pages/Ledger";
+import SellPlan from "./pages/SellPlan";
+import Accuracy from "./pages/Accuracy";
 import MarketMap from "./pages/MarketMap";
 import Opportunities from "./pages/Opportunities";
 import Overview from "./pages/Overview";
 import Setup from "./pages/Setup";
 import StatusPage from "./pages/StatusPage";
 
-const NAV = [
-  ["/", "Overview"],
-  ["/opportunities", "Opportunities"],
-  ["/crafts", "Crafts"],
-  ["/gathering", "What to sell"],
-  ["/inventory", "Bags & bank"],
-  ["/ledger", "Gold ledger"],
-  ["/map", "Market map"],
-  ["/status", "Data status"],
-  ["/glossary", "Glossary"],
-  ["/setup", "Settings"],
-] as const;
+const NAV: { title: string; links: [string, string][] }[] = [
+  { title: "Market", links: [["/", "Overview"], ["/opportunities", "Opportunities"], ["/gathering", "What to sell"],
+    ["/map", "Market map"]] },
+  { title: "Crafting", links: [["/crafts", "Crafts"]] },
+  { title: "Your characters", links: [["/inventory", "Bags & bank"], ["/sell", "Sell plan"], ["/ledger", "Gold ledger"]] },
+  { title: "About the data", links: [["/accuracy", "Forecast accuracy"], ["/status", "Data status"],
+    ["/glossary", "Glossary"], ["/setup", "Settings"]] },
+];
 
 function Header() {
   const { status, refreshStatus } = useApp();
   const [busy, setBusy] = useState(false);
   const realm = status?.sources.find((s) => s.key === "tsm_realm") ?? status?.sources.find((s) => s.key === "tsm_region");
-  const problems = status?.warnings.filter((w) => w.level === "error" || w.level === "warn").length ?? 0;
 
   const refresh = async () => {
     setBusy(true);
@@ -57,14 +54,6 @@ function Header() {
           <span className="muted small">{status?.realm_label ?? "WoW Forever market"}</span>
         </span>
       </div>
-      <nav>
-        {NAV.map(([to, label]) => (
-          <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
-            {label}
-            {to === "/status" && problems > 0 && <span className="dot warn" />}
-          </NavLink>
-        ))}
-      </nav>
       <div className="topbar-right">
         {status && (
           <span className="freshness" title="Time of the TSM scan the numbers are based on">
@@ -82,6 +71,26 @@ function Header() {
         )}
       </div>
     </header>
+  );
+}
+
+function SideNav() {
+  const { status } = useApp();
+  const problems = status?.warnings.filter((w) => w.level === "error" || w.level === "warn").length ?? 0;
+  return (
+    <aside className="sidenav">
+      {NAV.map((group) => (
+        <div key={group.title} className="nav-group">
+          <div className="nav-title">{group.title}</div>
+          {group.links.map(([to, label]) => (
+            <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
+              {label}
+              {to === "/status" && problems > 0 && <span className="dot warn" />}
+            </NavLink>
+          ))}
+        </div>
+      ))}
+    </aside>
   );
 }
 
@@ -116,6 +125,8 @@ export default function App() {
       <Toasts />
       <Banners />
       <Header />
+      <div className="layout">
+      <SideNav />
       <main>
         <Routes>
           <Route path="/" element={<Overview />} />
@@ -124,6 +135,8 @@ export default function App() {
           <Route path="/gathering" element={<Gathering />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/ledger" element={<Ledger />} />
+          <Route path="/sell" element={<SellPlan />} />
+          <Route path="/accuracy" element={<Accuracy />} />
           <Route path="/map" element={<MarketMap />} />
           <Route path="/status" element={<StatusPage />} />
           <Route path="/glossary" element={<Glossary />} />
@@ -131,6 +144,7 @@ export default function App() {
           <Route path="/setup" element={<Setup />} />
         </Routes>
       </main>
+      </div>
       <footer>
         Decision support only. Prices move; nothing here guarantees a profit. Data: TradeSkillMaster public files and
         your own Auctionator scans.

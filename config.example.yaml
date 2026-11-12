@@ -50,6 +50,14 @@ analysis:
   # launch-week prices, which will not come back, so market is the safer default.
   reference_price: market
 
+# Sell plan: sell now, sell a few at a time, vendor or hold. "Hold" is only ever advised when the
+# backtest shows the forecasts beating "no change" (see the Forecast accuracy page).
+advice:
+  horizon_days: 3              # how far ahead "hold" looks: 1, 3 or 7
+  hold_min_gain: 0.05          # expected rise needed before waiting is worth it
+  hold_min_probability: 0.65   # calibrated chance of a rise needed
+  gradual_days: 3              # holding more than the market buys in this many days: sell a few at a time
+
 alerts:
   enabled: true
   cheap_below: 0.25            # alert when a tracked item is this far below its reference price

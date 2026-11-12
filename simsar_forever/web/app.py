@@ -16,7 +16,9 @@ from .. import __version__, addon_install, config, db, discover, forever, icons,
 from .. import groups as groupmod
 from ..analysis import crafts as craftmod
 from ..analysis import econometrics, explain, inventory, market
+from ..analysis import forecast as forecastmod
 from ..analysis import ledger as ledgermod
+from ..analysis import sellplan
 from ..analysis.engine import Engine
 from . import status as statusmod
 
@@ -180,7 +182,24 @@ def create_app(cfg, background=True):
 
     @app.get("/api/inventory")
     def inventory_view():
-        return inventory.build(rt.conn(), rt.engine.result())
+        out = inventory.build(rt.conn(), rt.engine.result(), rt.cfg)
+        fc = rt.engine.result()["forecast"]
+        out["advice"] = {**rt.cfg["advice"], "hold_allowed": sellplan.hold_allowed(fc, rt.cfg),
+                         "backtest": fc["backtest"].get(rt.cfg["advice"]["horizon_days"])}
+        return out
+
+    @app.get("/api/accuracy")
+    def accuracy():
+        fc = rt.engine.result()["forecast"]
+        return {
+            "backtest": {str(h): v for h, v in fc["backtest"].items()},
+            "live": {str(h): v for h, v in forecastmod.live_summary(rt.conn(), rt.cfg["advice"]).items()},
+            "models": {str(h): v for h, v in fc["models"].items()},
+            "days": fc["days"],
+            "items": len(fc["items"]),
+            "advice": rt.cfg["advice"],
+            "hold_allowed": sellplan.hold_allowed(fc, rt.cfg),
+        }
 
     @app.get("/api/ledger")
     def ledger_view():

@@ -189,6 +189,48 @@ export interface InventoryItem {
   my_sales_per_day: number | null;
   days_to_sell: number | null;
   flags: Flag[];
+  plan?: Plan;
+}
+
+export type AdviceKind = "sell" | "vendor" | "hold" | "gradual" | "bound" | "none";
+
+export interface Plan {
+  advice: AdviceKind | null;
+  horizon: number;
+  expected_change: number | null;
+  p_up: number | null;
+  low: number | null;
+  high: number | null;
+  hold_allowed: boolean;
+  days_to_sell: number | null;
+}
+
+export interface Backtest {
+  horizon: number; n: number; days: number; ok: boolean; needs?: string;
+  mae_model?: number; mae_naive?: number; skill?: number; median_error_model?: number; median_error_naive?: number;
+  p_value?: number | null; beats_naive?: boolean; coverage?: number; direction?: number | null; direction_n?: number;
+  calibration?: { from: number; to: number; n: number; predicted: number; observed: number }[];
+  hold?: { n: number; hit: number | null; avg_change: number | null };
+  sell?: { n: number; avg_change: number | null; rose_much: number | null };
+}
+
+export interface LiveAccuracy {
+  horizon: number; n: number; pending: number; ok: boolean; mae_model?: number; mae_naive?: number; skill?: number;
+  coverage?: number; days?: number; hold?: { n: number; hit: number | null; avg_change: number | null };
+}
+
+export interface AdviceSettings {
+  horizon_days: number; hold_min_gain: number; hold_min_probability: number; gradual_days: number;
+}
+
+export interface Accuracy {
+  backtest: Record<string, Backtest>;
+  live: Record<string, LiveAccuracy>;
+  models: Record<string, { H: number; a: number; b: number; a_raw: number; b_raw: number; b_t: number | null; n: number }>;
+  days: number;
+  items: number;
+  advice: AdviceSettings;
+  hold_allowed: boolean;
 }
 
 export interface Character {
@@ -301,7 +343,9 @@ export const api = {
   items: (scope: "tracked" | "all" = "tracked") => get<Item[]>(`/api/items?scope=${scope}`),
   item: (id: number) => get<ItemDetail>(`/api/items/${id}`),
   itemStats: (id: number) => get<ItemStats>(`/api/items/${id}/stats`),
-  inventory: () => get<{ characters: Character[]; items: InventoryItem[]; ah_cut: number; auction_house: string }>("/api/inventory"),
+  inventory: () => get<{ characters: Character[]; items: InventoryItem[]; ah_cut: number; auction_house: string;
+    advice: AdviceSettings & { hold_allowed: boolean; backtest: Backtest | null } }>("/api/inventory"),
+  accuracy: () => get<Accuracy>("/api/accuracy"),
   crafts: () => get<Craft[]>("/api/crafts"),
   ledger: () => get<LedgerData>("/api/ledger"),
   alerts: () => get<Alert[]>("/api/alerts"),

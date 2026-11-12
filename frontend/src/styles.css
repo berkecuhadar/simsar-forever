@@ -66,7 +66,20 @@ input::placeholder { color: var(--faint); }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--gold); }
 
 .app { min-height: 100vh; display: flex; flex-direction: column; }
-main { flex: 1; width: 100%; max-width: 1440px; margin: 0 auto; padding: 28px 32px 56px; }
+main { flex: 1; min-width: 0; max-width: 1440px; padding: 28px 32px 56px; }
+.layout { flex: 1; display: flex; align-items: flex-start; }
+.sidenav {
+  position: sticky; top: 60px; flex: none; width: 196px; height: calc(100vh - 60px); overflow-y: auto;
+  padding: 22px 10px 22px 18px; border-right: 1px solid var(--line-soft);
+}
+.nav-group { margin-bottom: 18px; }
+.nav-title { color: var(--faint); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 6px 10px; }
+.sidenav a {
+  display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 14px;
+  padding: 6px 10px; border-radius: 6px; border-left: 2px solid transparent;
+}
+.sidenav a:hover { color: var(--text); background: var(--panel); text-decoration: none; }
+.sidenav a.active { color: var(--text); background: var(--panel); border-left-color: var(--gold); }
 footer { color: var(--faint); font-size: 13px; text-align: center; padding: 18px; border-top: 1px solid var(--line-soft); }
 
 /* Header */
@@ -86,13 +99,6 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 18px
   display: grid; place-items: center;
   background: var(--gold); color: #1d1606; font-weight: 700; font-family: Georgia, serif;
 }
-.topbar nav { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; min-width: 0; height: 100%; }
-.topbar nav a {
-  color: var(--muted); padding: 0 12px; position: relative; white-space: nowrap; font-size: 14px;
-  display: flex; align-items: center; border-bottom: 2px solid transparent;
-}
-.topbar nav a:hover { color: var(--text); text-decoration: none; }
-.topbar nav a.active { color: var(--text); border-bottom-color: var(--gold); }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; white-space: nowrap; font-size: 13px; }
 .freshness { color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
 .alert-link { color: var(--gold); }
@@ -118,7 +124,14 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 18px
 .card { background: var(--panel); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 18px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .grid-2 > .card { margin-bottom: 18px; }
-@media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } main { padding: 20px 16px 40px; } .topbar { padding: 0 16px; } }
+@media (max-width: 1000px) {
+  .grid-2 { grid-template-columns: 1fr; } main { padding: 20px 16px 40px; } .topbar { padding: 0 16px; }
+  .layout { flex-direction: column; align-items: stretch; }
+  .sidenav { position: static; width: auto; height: auto; display: flex; gap: 4px 18px; flex-wrap: wrap;
+    padding: 10px 16px; border-right: none; border-bottom: 1px solid var(--line-soft); }
+  .nav-group { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+  .nav-title { display: none; }
+}
 
 /* Money */
 .money { white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -159,6 +172,14 @@ footer { color: var(--faint); font-size: 13px; text-align: center; padding: 18px
 .label-slow_profitable { color: var(--gold); }
 .label-avoid, .verdict-sell_mats { color: var(--red); }
 .label-unknown, .verdict-missing, .verdict-no_product, .where-bound, .where-unknown { color: var(--faint); }
+.advice-sell { color: var(--green); }
+.advice-hold { color: var(--blue); }
+.advice-gradual { color: var(--gold); }
+.advice-vendor { color: var(--amber); }
+.advice-bound, .advice-none { color: var(--faint); }
+.why { white-space: normal; display: inline-block; min-width: 260px; max-width: 420px; line-height: 1.4; }
+.tile-button { text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.tile-button.selected { border-color: var(--gold); }
 
 .flags { display: inline-flex; gap: 10px; flex-wrap: nowrap; }
 .flag { font-size: 13px; color: var(--amber); white-space: nowrap; }
@@ -250,7 +271,7 @@ table.mini .left { text-align: left; }
 .dot.ok { background: var(--green); }
 .dot.warn { background: var(--amber); }
 .dot.err { background: var(--red); }
-.topbar nav .dot { position: absolute; top: 18px; right: 3px; margin: 0; width: 6px; height: 6px; }
+.sidenav .dot { margin: 0; width: 6px; height: 6px; }
 
 .kv { display: grid; grid-template-columns: max-content 1fr; gap: 8px 22px; margin: 0; font-size: 14px; }
 .kv dt { color: var(--muted); }

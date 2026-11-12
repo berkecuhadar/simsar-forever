@@ -37,6 +37,16 @@
   characters is shown but left out of profit.
 - Imports the gold history of Accountant Classic when that addon is installed, so the ledger
   reaches back to before the Simsar Forever addon was installed.
+- **Sell plan page.** For everything your characters hold: sell on the auction house now, sell a
+  few at a time (you hold more than the market buys in a few days), sell to a vendor, or hold
+  because the price is expected to rise, each with the reason.
+- **Forecast accuracy page.** Price forecasts for 1, 3 and 7 days from a mean-reversion model
+  fitted on all items at once, with an 80% range and a calibrated chance of a rise. A rolling
+  backtest compares them with "no change", with a significance test, and every day's forecasts are
+  stored and scored as their day arrives. "Hold" is only advised when the backtest shows the
+  forecasts beating "no change"; until then the page says why.
+- **Navigation** moved to a side menu grouped into Market, Crafting, Your characters and About the
+  data.
 
 ## 0.1.2 (2026-11-12)
 

@@ -86,3 +86,13 @@ def test_ledger(client):
     assert data["categories"]["TRANSFER"]["kind"] == "transfer"
     kit = next(r for r in data["auction_items"] if r["name"] == "Heavy Armor Kit (demo)")
     assert kit["sold"] == 2 and kit["expired"] == 1 and abs(kit["sell_through"] - 2 / 3) < 1e-9
+
+
+def test_sell_plan_and_accuracy(client):
+    inv = client.get("/api/inventory").json()
+    assert inv["advice"]["horizon_days"] == 3 and "hold_allowed" in inv["advice"]
+    advice = {i["plan"]["advice"] for i in inv["items"]}
+    assert advice <= {"sell", "vendor", "hold", "gradual", "bound", "none"} and advice
+    acc = client.get("/api/accuracy").json()
+    assert set(acc["backtest"]) == {"1", "3", "7"} and acc["days"] > 0
+    assert set(acc["live"]) == {"1", "3", "7"}

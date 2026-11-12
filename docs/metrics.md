@@ -242,6 +242,70 @@ Failure modes: a gold change while two things happen at once (looting while a ve
 open) goes to whichever rule matches first; mail opened by another addon in bulk can arrive faster
 than the game reports gold, which the exact-amount match in step 1 is there to handle.
 
+## Price forecasts and the sell plan
+
+`simsar_forever/analysis/forecast.py` and `sellplan.py`. Listing deposits are not part of any of it.
+
+**Data.** For each item and day, the median of TSM's cheapest-listing scans and Auctionator's daily
+low on that day, as a log price `y[i, t]`; the last 120 days.
+
+**Model.** One pooled regression for all items, per horizon H of 1, 3 and 7 days:
+
+```
+gap[i, t]  = y[i, t] - median(y[i, t-13 .. t])          (needs 3 prices in those 14 days)
+y[i, t+H] - y[i, t] = a_H + b_H * gap[i, t] + e
+```
+
+`b_H` is how much of a gap from the two-week level closes within H days (the page shows `-b_H`);
+`a_H` is the drift all prices share. It is fitted by least squares on the last 30 days of pairs, with
+both variables' 1% tails clipped. Each coefficient is multiplied by `max(0, 1 - 1/t^2)` (zero when
+|t| <= 1), which pulls coefficients the data cannot tell from zero towards zero, so a weak model
+forecasts "no change". The errors `e` are divided by the item's own daily volatility (1.4826 x the
+median absolute deviation of its daily log changes) and `sqrt(H)`; the 10th and 90th percentiles
+of those standardised errors give the 80% range, and their share above `-mean / scale` the raw
+chance of a rise. No normal distribution is assumed.
+
+**Calibration.** The raw chance of a rise is corrected with the outcomes of earlier forecasts:
+forecasts are grouped by raw chance, the share that really rose is made non-decreasing with
+pool-adjacent-violators (isotonic regression) and interpolated. It needs 100 past forecasts.
+
+**Backtest.** For every past day `o`, the model and the calibration are built from data known on day
+`o` only, every item with a gap that day is forecast, and the forecast is compared with the real
+change from `o` to `o + H`. The yardstick is "no change" (the error is the real change itself).
+
+```
+typical error = mean |real - forecast|            (log points, shown as a percentage)
+skill         = 1 - error(model) / error(no change)
+p             = one-sided t test that the model's error is smaller, on the average improvement
+                per forecast day (forecasts of the same day share market moves, so days, not
+                forecasts, are the independent units); needs 3 forecast days
+80% range held = share of real changes inside the forecast range (should be near 80%)
+```
+
+The model **beats "no change"** when skill > 0 and p < 0.05. With fewer than 30 checked forecasts
+nothing is reported.
+
+**Live record.** Each day the forecasts of every tracked item and every item you hold are stored,
+and scored when the price of the target day arrives. The live numbers use the same formulas; unlike
+the backtest nothing in them could have been tuned after the fact.
+
+**Advice**, per item, for the units you hold (`advice.*` in config.yaml):
+
+| Advice | Rule |
+|---|---|
+| Soulbound | every unit is bound |
+| Vendor | no auction price, or `vendor_sell >= net_sell` |
+| Hold | the backtest at `advice.horizon_days` beats "no change", the expected change is at least `hold_min_gain` (5%) and the calibrated chance of a rise at least `hold_min_probability` (65%) |
+| Sell a few at a time | `tradable / my_sales_per_day > gradual_days` (3) |
+| Sell now | otherwise |
+
+The backtest also shows what following the rule would have done: how often a "hold" was right and
+the average change after it, and how often prices rose more than 5% after the other calls.
+
+Failure modes: the model knows prices only. A patch, a new source of supply or a holiday changes
+the market in ways no price history shows. On a young server with a few days of history the
+backtest has little to go on, so hold stays off until it has evidence.
+
 ## Alerts
 
 After each data update:

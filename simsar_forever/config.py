@@ -39,6 +39,13 @@ DEFAULTS = {
         "live_price_hours": 72,
         "reference_price": "market",
     },
+    "advice": {
+        # Sell, vendor or hold (analysis/forecast.py, analysis/sellplan.py).
+        "horizon_days": 3,          # how far ahead "hold" looks
+        "hold_min_gain": 0.05,      # expected rise needed to say hold
+        "hold_min_probability": 0.65,
+        "gradual_days": 3,          # more stock than the market buys in this many days: sell a few at a time
+    },
     "alerts": {
         "enabled": True,
         "cheap_below": 0.25,
@@ -124,6 +131,8 @@ def validate(cfg):
             raise ConfigError(f"economy.{key} must be a number between 0 and 1, got {v!r}")
     if eco["sell_price"] not in ("avg_sale", "market"):
         raise ConfigError("economy.sell_price must be 'avg_sale' or 'market'")
+    if cfg["advice"]["horizon_days"] not in (1, 3, 7):
+        raise ConfigError("advice.horizon_days must be 1, 3 or 7")
     if cfg["analysis"]["reference_price"] not in ("market", "historical"):
         raise ConfigError("analysis.reference_price must be 'market' or 'historical'")
     t = cfg["tsm"]
