@@ -470,20 +470,48 @@ end
 -- The game only writes SavedVariables on /reload, logout or a character switch, and no addon can
 -- force it. After a bank visit or new recipes we offer a one-click reload, at most every ten
 -- minutes and never in combat.
+--
+-- The prompt is a frame of our own. Using Blizzard's StaticPopupDialogs from an addon taints the
+-- shared popup system, and the game then blocks Blizzard's own protected popups and blames this addon.
 local PROMPT_INTERVAL = 600
 local lastPrompt = 0
+local prompt
 
-StaticPopupDialogs = StaticPopupDialogs or {}
-StaticPopupDialogs.SIMSAR_FOREVER_SAVE = {
-  text = "Simsar Forever has new %s.\nReload the interface now to send it to the dashboard?",
-  button1 = "Reload now",
-  button2 = "Later",
-  OnAccept = function() ReloadUI() end,
-  timeout = 0,
-  whileDead = true,
-  hideOnEscape = true,
-  preferredIndex = 3,
-}
+local function reloadInterface()
+  if C_UI and C_UI.Reload then C_UI.Reload() else ReloadUI() end
+end
+
+local function promptFrame()
+  if prompt then return prompt end
+  local f = CreateFrame("Frame", "SimsarForeverSavePrompt", UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
+  f:SetSize(360, 112)
+  f:SetPoint("TOP", UIParent, "TOP", 0, -160)
+  f:SetFrameStrata("DIALOG")
+  if f.SetBackdrop then
+    f:SetBackdrop({
+      bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+      edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+      tile = true, tileSize = 32, edgeSize = 24,
+      insets = { left = 6, right = 6, top = 6, bottom = 6 },
+    })
+  end
+  f.text = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  f.text:SetPoint("TOP", f, "TOP", 0, -20)
+  f.text:SetWidth(320)
+  f.reload = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+  f.reload:SetSize(130, 24)
+  f.reload:SetPoint("BOTTOMRIGHT", f, "BOTTOM", -6, 18)
+  f.reload:SetText("Reload now")
+  f.reload:SetScript("OnClick", function() f:Hide(); reloadInterface() end)
+  f.later = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+  f.later:SetSize(130, 24)
+  f.later:SetPoint("BOTTOMLEFT", f, "BOTTOM", 6, 18)
+  f.later:SetText("Later")
+  f.later:SetScript("OnClick", function() f:Hide() end)
+  f:Hide()
+  prompt = f
+  return f
+end
 
 local function offerSave(what)
   local d = db()
@@ -492,7 +520,9 @@ local function offerSave(what)
   if InCombatLockdown and InCombatLockdown() then return end
   if time() - lastPrompt < PROMPT_INTERVAL then return end
   lastPrompt = time()
-  if StaticPopup_Show then StaticPopup_Show("SIMSAR_FOREVER_SAVE", what) end
+  local f = promptFrame()
+  f.text:SetText("Simsar Forever has new " .. what .. ".\nReload the interface now to send it to the dashboard?")
+  f:Show()
 end
 
 local frame = CreateFrame("Frame")
@@ -572,7 +602,7 @@ SlashCmdList.SIMSARFOREVER = function(arg)
   if arg == "diag" then
     diag()
   elseif arg == "save" then
-    ReloadUI()
+    reloadInterface()
   elseif arg == "prompt off" or arg == "prompt on" then
     local d = db()
     d.settings = d.settings or {}

@@ -18,9 +18,11 @@ function UnitFactionGroup() return "Alliance" end
 function UnitName() return "Tester" end
 function UnitClass() return "Hunter", "HUNTER" end
 function GetMoney() return 123456 end
-popups, reloads, inCombat = {}, 0, false
-function StaticPopup_Show(name, arg) popups[#popups + 1] = arg end
+reloads, inCombat = 0, false
 function ReloadUI() reloads = reloads + 1 end
+-- Blizzard's popup system; the addon must leave it alone (see test_addon_never_touches_blizzard_popups).
+StaticPopupDialogs = setmetatable({}, { __newindex = function() error("addon wrote to StaticPopupDialogs") end })
+function StaticPopup_Show() error("addon used StaticPopup_Show") end
 function InCombatLockdown() return inCombat end
 WorldFrame = {}
 SlashCmdList = {}
@@ -33,10 +35,25 @@ function GetItemInfo(id)
   return i.name, "link", i.quality or 1, 1, 1, "Type", "Sub", 20, "", i.icon, i.vendor, i.class
 end
 
-local function newFrame(name)
-  local f = { events = {}, lines = {}, hooks = {} }
+local newFrame
+function newFrame(name)
+  local f = { events = {}, lines = {}, hooks = {}, scripts = {}, shown = true }
   function f:RegisterEvent(e) self.events[e] = true end
-  function f:SetScript(_, fn) self.handler = fn end
+  function f:SetScript(what, fn)
+    self.scripts[what] = fn
+    if what == "OnEvent" then self.handler = fn end
+  end
+  function f:Click() if self.scripts.OnClick then self.scripts.OnClick(self) end end
+  function f:Show() self.shown = true end
+  function f:Hide() self.shown = false end
+  function f:IsShown() return self.shown end
+  function f:SetText(t) self.text_value = t end
+  function f:GetText() return self.text_value end
+  function f:CreateFontString() return newFrame() end
+  function f:SetSize() end
+  function f:SetWidth() end
+  function f:SetPoint() end
+  function f:SetFrameStrata() end
   function f:HookScript(what, fn) self.hooks[what] = fn end
   function f:SetOwner() end
   function f:ClearLines() self.lines = {} end
@@ -53,7 +70,12 @@ local function newFrame(name)
   return f
 end
 
-function CreateFrame(_, name) return newFrame(name or "anon") end
+function CreateFrame(_, name)
+  local f = newFrame(name or "anon")
+  if name then _G[name] = f end
+  return f
+end
+UIParent = newFrame("UIParent")
 GameTooltip = newFrame("GameTooltip")
 
 function hooksecurefunc(a, b, c)
