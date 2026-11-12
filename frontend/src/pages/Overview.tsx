@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Skeleton } from "../components/Feedback";
 import { type GroupOverview, api } from "../api";
 import { Flags } from "../components/Badges";
 import { Hint } from "../components/Hint";
@@ -22,19 +23,19 @@ function GroupCard({ g }: { g: GroupOverview }) {
   const isGather = g.role === "gather";
   const list = isGather ? g.top_sellers : g.top_flips;
   return (
-    <div className="card group-card" style={{ borderTopColor: g.color }}>
+    <div className="card group-card">
       <div className="group-head">
-        <h3>{g.title}</h3>
+        <h3><span className="swatch" style={{ background: g.color }} />{g.title}</h3>
         <span className="muted small">{g.items} items, {g.with_volume} with sales data</span>
       </div>
       <div className="group-stats">
         <div>
-          <div className="stat-label">Market size/day <Hint text="Money spent per day on this group's items on your realm (estimated)." /></div>
+          <div className="stat-label"><Hint text="Money spent per day on this group's items on your realm (estimated).">Market size/day</Hint></div>
           <div className="stat"><Money value={g.turnover_day} /></div>
         </div>
         {g.role === "craft" && (
           <div>
-            <div className="stat-label">Profitable crafts <Hint text="Recipes that make money even when you buy every material." /></div>
+            <div className="stat-label"><Hint text="Recipes that make money even when you buy every material.">Profitable crafts</Hint></div>
             <div className="stat">{g.profitable_crafts} / {g.recipes}</div>
           </div>
         )}
@@ -77,8 +78,8 @@ export default function Overview() {
         <h1>Overview</h1>
         <p className="lead">
           Your professions at a glance. Gathering groups show what earns the most when you sell your own stock;
-          crafting groups show the best recipes and resale chances. Every number has a <Hint text="Like this one." /> with
-          an explanation, and the <Link to="/glossary">glossary</Link> explains the terms.
+          crafting groups show the best recipes and resale chances. Hover any underlined term for an explanation; the{" "}
+          <Link to="/glossary">glossary</Link> explains them all.
         </p>
       </div>
       <Warnings />
@@ -91,7 +92,7 @@ export default function Overview() {
             <Hint text="Assumptions from config.yaml that turn region-wide sales into what you can sell. Change them there." /></span>
         </div>
       )}
-      {!data ? <div className="loading">Loading...</div> : (
+      {!data ? <Skeleton /> : (
         mine.size === 0 ? (
           <div className="group-grid">
             {data.groups.map((g) => <GroupCard key={g.key} g={g} />)}

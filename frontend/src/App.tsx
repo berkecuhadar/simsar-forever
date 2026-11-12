@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { api } from "./api";
+import { Toasts, toast } from "./components/Feedback";
 import { useApp } from "./context";
 import { ago } from "./format";
 import Crafts from "./pages/Crafts";
@@ -35,8 +36,11 @@ function Header() {
   const refresh = async () => {
     setBusy(true);
     try {
-      await api.refresh();
+      const r = await api.refresh();
+      toast(r.busy ? "A refresh is already running." : "Checking TSM and your game files...", "info");
       setTimeout(refreshStatus, 4000);
+    } catch {
+      toast("Could not reach the Simsar Forever server.", "error");
     } finally {
       setTimeout(() => setBusy(false), 4000);
     }
@@ -45,7 +49,7 @@ function Header() {
   return (
     <header className="topbar">
       <div className="brand">
-        <span className="logo">S</span>
+        <span className="logo" aria-hidden="true">S</span>
         <span className="brand-text">
           <span>Simsar Forever</span>
           <span className="muted small">{status?.realm_label ?? "WoW Forever market"}</span>
@@ -61,15 +65,18 @@ function Header() {
       </nav>
       <div className="topbar-right">
         {status && (
-          <span className="chip" title="Time of the TSM scan the numbers are based on">
-            Data: {ago(realm?.updated_at)}
+          <span className="freshness" title="Time of the TSM scan the numbers are based on">
+            <span className={`dot ${realm?.ok ? "ok" : "warn"}`} />
+            Prices from {ago(realm?.updated_at)}
           </span>
         )}
         {status && status.alerts_unseen > 0 && (
-          <NavLink to="/status#alerts" className="chip alert-chip">{status.alerts_unseen} new alerts</NavLink>
+          <NavLink to="/status#alerts" className="alert-link">
+            {status.alerts_unseen} new alert{status.alerts_unseen === 1 ? "" : "s"}
+          </NavLink>
         )}
         {!status?.demo && (
-          <button onClick={refresh} disabled={busy}>{busy ? "Refreshing..." : "Refresh now"}</button>
+          <button onClick={refresh} disabled={busy}>{busy ? "Refreshing..." : "Refresh"}</button>
         )}
       </div>
     </header>
@@ -82,7 +89,7 @@ function Banners() {
     <>
       {status?.demo && (
         <div className="demo-banner">
-          DEMO MODE: all data on this page is synthetic. Nothing here describes the real WoW Forever market.
+          Demo mode: every number here is made up and says nothing about the real WoW Forever market.
         </div>
       )}
       {error && <div className="error-banner">{error}</div>}
@@ -104,6 +111,7 @@ export default function App() {
   return (
     <div className="app">
       <FirstRunRedirect />
+      <Toasts />
       <Banners />
       <Header />
       <main>

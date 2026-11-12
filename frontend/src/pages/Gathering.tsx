@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Skeleton } from "../components/Feedback";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Chart, THEME, axisStyle, baseOption } from "../components/Chart";
@@ -61,7 +62,7 @@ export default function Gathering() {
             onClick={(p) => navigate(`/item/${(p.data as { itemId: number }).itemId}`)} />
         </div>
       )}
-      {!data ? <div className="loading">Loading...</div> : (
+      {!data ? <Skeleton /> : (
         <DataTable rows={rows} columns={columns} sorting={sorting} onSortingChange={setSorting}
           onRowClick={(r) => navigate(`/item/${r.item_id}`)} />
       )}

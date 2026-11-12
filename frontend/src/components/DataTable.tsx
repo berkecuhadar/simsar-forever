@@ -8,6 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Fragment, type ReactNode, useState } from "react";
+import { toast } from "./Feedback";
 import { Hint } from "./Hint";
 
 export interface ColumnMeta {
@@ -34,6 +35,7 @@ export function downloadCsv<T>(name: string, rows: T[], columns: ColumnDef<T, un
   a.download = `${name}-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
+  toast(`Exported ${rows.length} rows to ${a.download}`, "success");
 }
 
 export function DataTable<T>({
@@ -78,10 +80,11 @@ export function DataTable<T>({
                       className={h.column.getCanSort() ? "sortable" : ""}
                       onClick={h.column.getToggleSortingHandler()}
                     >
-                      {flexRender(h.column.columnDef.header, h.getContext())}
-                      {dir === "asc" ? " ▲" : dir === "desc" ? " ▼" : ""}
+                      {meta?.hint
+                        ? <Hint text={meta.hint}>{flexRender(h.column.columnDef.header, h.getContext())}</Hint>
+                        : flexRender(h.column.columnDef.header, h.getContext())}
+                      {dir && <span className="sort-arrow">{dir === "asc" ? "↑" : "↓"}</span>}
                     </span>
-                    {meta?.hint && <Hint text={meta.hint} />}
                   </th>
                 );
               })}

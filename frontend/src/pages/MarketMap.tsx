@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Skeleton } from "../components/Feedback";
 import { useNavigate } from "react-router-dom";
 import { type Item, api } from "../api";
 import { Chart, THEME, axisStyle, baseOption } from "../components/Chart";
@@ -89,7 +90,7 @@ export default function MarketMap() {
         </label>
       </div>
       <div className="card">
-        {!data ? <div className="loading">Loading...</div> : (
+        {!data ? <Skeleton /> : (
           <Chart option={option as never} height={560}
             onClick={(p) => navigate(`/item/${(p.data as { item: Item }).item.item_id}`)} />
         )}

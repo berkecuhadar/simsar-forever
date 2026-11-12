@@ -112,6 +112,7 @@ def analyse(recipes, items, fees, profession=None):
         }
         if product:
             unit_net = product.get("net_sell")
+            row.update(product_icon=product.get("icon_id"), product_quality=product.get("quality"))
             row.update(product_price=product.get("sell_price"), product_sales_per_day=product.get("my_sales_per_day"),
                        product_flags=product.get("flags", []), product_volatility=product.get("volatility"))
             if unit_net is not None and not missing:

@@ -1,5 +1,6 @@
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { type Group, type Status, api } from "./api";
+import { toast } from "./components/Feedback";
 
 interface AppState {
   status: Status | null;
@@ -37,7 +38,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       (s) => {
         setError(null);
         setStatus(s);
-        if (builtAt.current !== null && s.built_at !== builtAt.current) setVersion((v) => v + 1);
+        if (builtAt.current !== null && s.built_at !== builtAt.current) {
+          setVersion((v) => v + 1);
+          toast("New data loaded. The page is up to date.", "success");
+        }
         builtAt.current = s.built_at;
         if (unseen.current !== null && s.alerts_unseen > unseen.current) {
           api.alerts().then((alerts) => {

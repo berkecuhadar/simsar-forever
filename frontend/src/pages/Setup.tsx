@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { type Install, type SetupInfo, api } from "../api";
 import { Hint } from "../components/Hint";
+import { toast } from "../components/Feedback";
 import { useApp } from "../context";
 import { ago } from "../format";
 
@@ -110,11 +111,13 @@ export default function Setup() {
         region, realm, game_dir: inspected?.path ?? (gameDir || null), account: account || null,
         auctionator_realm: atoRealm || null, professions, auction_house: house,
       });
+      toast("Settings saved.", "success");
       refreshStatus();
       navigate("/");
       setTimeout(() => window.location.reload(), 300);
     } catch (e) {
       setError(String(e));
+      toast("Settings were not saved. See the message on the page.", "error");
     } finally {
       setSaving(false);
     }
@@ -210,8 +213,12 @@ export default function Setup() {
             </span>
             {(!inspected.export_addon_installed || inspected.export_addon_version !== info.addon_version) && (
               <button onClick={() => api.installAddon(inspected.path).then(
-                (r) => { setAddonMsg(`Installed to ${r.path}. Enable it in the game's AddOns list, then /reload.`); setGameDir(""); setTimeout(() => setGameDir(inspected.path), 50); },
-                (e) => setAddonMsg(String(e)))}>
+                (r) => {
+                  setAddonMsg(`Installed to ${r.path}. Enable it in the game's AddOns list, then /reload.`);
+                  toast("SimsarForeverExport installed.", "success");
+                  setGameDir(""); setTimeout(() => setGameDir(inspected.path), 50);
+                },
+                (e) => { setAddonMsg(String(e)); toast("The addon could not be installed.", "error"); })}>
                 {inspected.export_addon_installed ? "Update addon" : "Install addon"}
               </button>
             )}

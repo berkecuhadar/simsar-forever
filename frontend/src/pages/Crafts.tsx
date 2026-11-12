@@ -1,8 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { Skeleton } from "../components/Feedback";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { type Craft, type Verdict, api } from "../api";
 import { Flags, VerdictBadge } from "../components/Badges";
+import { ItemIcon, ItemName } from "../components/Icons";
 import { DataTable, downloadCsv } from "../components/DataTable";
 import { Hint } from "../components/Hint";
 import { useApp } from "../context";
@@ -11,7 +13,7 @@ import { useData, useStored } from "../hooks";
 import { CRAFT_COLUMNS, VERDICTS } from "../strings";
 
 function col(key: string, cell: (c: Craft) => JSX.Element | string, csv: (c: Craft) => string | number | null | undefined,
-  value?: (c: Craft) => number | null | undefined): ColumnDef<Craft, unknown> {
+  value?: (c: Craft) => number | null | undefined, align?: "left"): ColumnDef<Craft, unknown> {
   const info = CRAFT_COLUMNS[key];
   return {
     id: key,
@@ -22,7 +24,7 @@ function col(key: string, cell: (c: Craft) => JSX.Element | string, csv: (c: Cra
       const y = (value ? value(b.original) : (b.original as unknown as Record<string, number | null>)[key]) ?? -Infinity;
       return (x as number) - (y as number);
     },
-    meta: { hint: info.hint, csv },
+    meta: { hint: info.hint, csv, align },
     cell: ({ row }) => cell(row.original),
   };
 }
@@ -94,12 +96,17 @@ export default function Crafts() {
 
   const columns = useMemo<ColumnDef<Craft, unknown>[]>(() => [
     col("name", (c) => (
-      <span className={c.learned === 0 ? "muted" : ""}>
-        {c.name}
-        <span className="muted small"> {c.profession}</span>
+      <span className="item-name">
+        <ItemIcon id={c.product_icon} quality={c.product_quality} />
+        <span>
+          <span className={c.learned === 0 ? "muted" : ""}>
+            <ItemName name={c.name} quality={c.learned === 0 ? null : c.product_quality} />
+          </span>
+          <span className="faint small"> · {c.profession}{c.learned === 0 ? ", not learned" : ""}</span>
+        </span>
       </span>
-    ), (c) => c.name, () => null),
-    col("verdict", (c) => <VerdictBadge verdict={c.verdict} />, (c) => VERDICTS[c.verdict], () => null),
+    ), (c) => c.name, () => null, "left"),
+    col("verdict", (c) => <VerdictBadge verdict={c.verdict} />, (c) => VERDICTS[c.verdict], () => null, "left"),
     money("cost_buy"),
     money("mats_value"),
     money("revenue"),
@@ -152,7 +159,7 @@ export default function Crafts() {
         <span className="spacer" />
         <button onClick={() => downloadCsv("simsar-forever-crafts", rows, columns)}>Export CSV</button>
       </div>
-      {!data ? <div className="loading">Loading...</div> : (
+      {!data ? <Skeleton /> : (
         <DataTable rows={rows} columns={columns} sorting={sorting} onSortingChange={setSorting}
           expand={(c) => <Breakdown c={c} />} rowClass={(c) => `verdict-row-${c.verdict}`} />
       )}

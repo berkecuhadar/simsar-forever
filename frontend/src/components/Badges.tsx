@@ -6,7 +6,7 @@ const QUIET: Flag[] = ["not_live", "low_confidence"];
 
 export function LabelBadge({ label }: { label: Label }) {
   return (
-    <Hint text={LABEL_HINTS[label]}>
+    <Hint text={LABEL_HINTS[label]} plain>
       <span className={`badge label-${label}`}>{LABELS[label]}</span>
     </Hint>
   );
@@ -14,7 +14,7 @@ export function LabelBadge({ label }: { label: Label }) {
 
 export function VerdictBadge({ verdict }: { verdict: Verdict }) {
   return (
-    <Hint text={VERDICT_HINTS[verdict]}>
+    <Hint text={VERDICT_HINTS[verdict]} plain>
       <span className={`badge verdict-${verdict}`}>{VERDICTS[verdict]}</span>
     </Hint>
   );
@@ -26,7 +26,7 @@ export function Flags({ flags, all = false }: { flags: Flag[]; all?: boolean }) 
   return (
     <span className="flags">
       {shown.map((f) => (
-        <Hint key={f} text={FLAG_HINTS[f]}>
+        <Hint key={f} text={FLAG_HINTS[f]} plain>
           <span className={`flag flag-${f}`}>{FLAGS[f]}</span>
         </Hint>
       ))}

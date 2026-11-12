@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Skeleton } from "../components/Feedback";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import { useApp } from "../context";
@@ -16,12 +17,12 @@ export default function StatusPage() {
 
   useEffect(() => {
     if (status && status.alerts_unseen > 0) {
-      const t = setTimeout(() => api.markSeen().then(() => { refreshStatus(); reload(); }), 3000);
+      const t = setTimeout(() => api.markSeen().then(() => { refreshStatus(); reload(); }), 5000);
       return () => clearTimeout(t);
     }
   }, [status?.alerts_unseen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!status) return <div className="loading">Loading...</div>;
+  if (!status) return <Skeleton />;
   const s = status;
 
   return (

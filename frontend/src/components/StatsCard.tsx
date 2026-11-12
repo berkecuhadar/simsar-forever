@@ -15,8 +15,7 @@ export function StatsCard({ stats }: { stats: ItemStats | null }) {
       <h3>Advanced statistics <Hint text="Time-series statistics on this item's own history (statsmodels and SciPy). They describe the past; markets can change at any time." /></h3>
       <div className="stats-grid">
         <div>
-          <div className="stat-title">Does the price snap back?
-            <Hint text="An AR(1) model on log prices measures how fast gaps from the usual level close; the half-life is how long half a gap takes. The ADF test checks the pull is real and not chance (p below 0.05 = strong evidence)." /></div>
+          <div className="stat-title"><Hint text="An AR(1) model on log prices measures how fast gaps from the usual level close; the half-life is how long half a gap takes. The ADF test checks the pull is real and not chance (p below 0.05 = strong evidence).">Does the price snap back?</Hint></div>
           {!mr.ok ? <Needs text={mr.needs!} /> : mr.verdict === "none" ? (
             <p>No reliable pull back to a fixed level (ADF p = {num(mr.adf_p, 2)}). The price behaves more like a drifting
               walk, so "it will come back" is not a safe bet.</p>
@@ -30,8 +29,7 @@ export function StatsCard({ stats }: { stats: ItemStats | null }) {
         </div>
 
         <div>
-          <div className="stat-title">Price forecast (3 days)
-            <Hint text="Exponential smoothing with a damped trend (ETS) on daily prices. The range is an 80% interval: in 4 cases out of 5 the price should land inside it, if the market keeps behaving as it has." /></div>
+          <div className="stat-title"><Hint text="Exponential smoothing with a damped trend (ETS) on daily prices. The range is an 80% interval: in 4 cases out of 5 the price should land inside it, if the market keeps behaving as it has.">Price forecast (3 days)</Hint></div>
           {!fc.ok ? <Needs text={fc.needs!} /> : fc.flat ? <p>The price has not moved, so the forecast is flat.</p> : (
             <>
               <p>
@@ -45,8 +43,7 @@ export function StatsCard({ stats }: { stats: ItemStats | null }) {
         </div>
 
         <div>
-          <div className="stat-title">Price sensitivity of demand
-            <Hint text="Elasticity from a log-log regression of daily units sold on the average sale price across the region. -2 means a 1% higher price goes with 2% fewer sales. It is a correlation: supply changes also move both." /></div>
+          <div className="stat-title"><Hint text="Elasticity from a log-log regression of daily units sold on the average sale price across the region. -2 means a 1% higher price goes with 2% fewer sales. It is a correlation: supply changes also move both.">Price sensitivity of demand</Hint></div>
           {!el.ok ? <Needs text={el.needs!} /> : !el.clear ? (
             <p>No clear link between price and sales so far (elasticity {num(el.elasticity, 2)}, 90% range {num(el.ci_low, 2)} to {num(el.ci_high, 2)}).</p>
           ) : (
@@ -60,8 +57,7 @@ export function StatsCard({ stats }: { stats: ItemStats | null }) {
         </div>
 
         <div>
-          <div className="stat-title">Best time to buy and sell
-            <Hint text="Each scan's price relative to that day's median, grouped by local time of day (and weekday after two weeks). The Kruskal-Wallis test says whether the differences are bigger than chance." /></div>
+          <div className="stat-title"><Hint text="Each scan's price relative to that day's median, grouped by local time of day (and weekday after two weeks). The Kruskal-Wallis test says whether the differences are bigger than chance.">Best time to buy and sell</Hint></div>
           {!tm.ok ? <Needs text={tm.needs!} /> : !tm.hours ? <Needs text="scans spread across more hours" /> : (
             <>
               <p>

@@ -89,6 +89,8 @@ export interface Craft {
   product_sales_per_day: number | null;
   product_price: number | null;
   product_flags: Flag[];
+  product_icon?: number | null;
+  product_quality?: number | null;
   recipe_item?: { item_id: number; name: string; price: number | null };
   payback_days?: number;
   verdict: Verdict;

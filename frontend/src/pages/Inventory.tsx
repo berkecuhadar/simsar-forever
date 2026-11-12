@@ -1,4 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { Skeleton } from "../components/Feedback";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { type InventoryItem, api } from "../api";
@@ -110,7 +111,7 @@ export default function Inventory() {
       meta: { hint: "Where this item is worth more.", align: "left", csv: (r: Row) => r.sell_where },
       cell: ({ row }) => {
         const s = SELL_WHERE[row.original.sell_where];
-        return <Hint text={s.hint}><span className={`badge where-${row.original.sell_where}`}>{s.label}</span></Hint>;
+        return <Hint text={s.hint} plain><span className={`badge where-${row.original.sell_where}`}>{s.label}</span></Hint>;
       } },
     { id: "my_sales_per_day", header: "Sales/day", accessorFn: (r) => r.my_sales_per_day,
       meta: { hint: "How many you can expect to sell per day on your realm.", csv: (r: Row) => r.my_sales_per_day },
@@ -125,7 +126,7 @@ export default function Inventory() {
   const set = (k: string, v: unknown) => setF((old) => ({ ...old, [k]: v }));
 
   if (error) return <div className="error-banner">{error}</div>;
-  if (!data) return <div className="loading">Loading...</div>;
+  if (!data) return <Skeleton />;
 
   return (
     <section>

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Skeleton } from "../components/Feedback";
 import { useNavigate } from "react-router-dom";
 import { type Item, type Label, api } from "../api";
 import { DataTable, downloadCsv } from "../components/DataTable";
@@ -81,7 +82,7 @@ export default function Opportunities() {
         <button onClick={() => downloadCsv("simsar-forever-opportunities", rows, columns)}>Export CSV</button>
       </div>
       {error && <div className="error-banner">{error}</div>}
-      {!data ? <div className="loading">Loading...</div> : (
+      {!data ? <Skeleton /> : (
         <DataTable rows={rows} columns={columns} sorting={sorting} onSortingChange={setSorting}
           onRowClick={(r) => navigate(`/item/${r.item_id}`)} />
       )}

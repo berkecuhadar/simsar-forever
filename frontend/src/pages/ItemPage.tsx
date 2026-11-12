@@ -1,4 +1,5 @@
 import { type ReactNode, useMemo } from "react";
+import { Skeleton } from "../components/Feedback";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Flags, LabelBadge, VerdictBadge } from "../components/Badges";
@@ -14,7 +15,7 @@ import { COLUMNS, PRICE_SOURCES } from "../strings";
 function Tile({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
     <div className="tile">
-      <div className="tile-title">{title}{hint && <Hint text={hint} />}</div>
+      <div className="tile-title">{hint ? <Hint text={hint}>{title}</Hint> : title}</div>
       <div className="tile-value">{children}</div>
     </div>
   );
@@ -87,7 +88,7 @@ export default function ItemPage() {
   }, [data]);
 
   if (error) return <div className="error-banner">{error}</div>;
-  if (!data) return <div className="loading">Loading...</div>;
+  if (!data) return <Skeleton />;
   const it = data.item;
 
   return (
