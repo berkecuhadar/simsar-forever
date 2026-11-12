@@ -1,8 +1,7 @@
 import pytest
-import yaml
 from fastapi.testclient import TestClient
 
-from simsar_forever import config, discover, forever, refresh, tsm
+from simsar_forever import config, discover, forever, refresh, tsm, yamlio
 from simsar_forever.web.app import create_app
 
 
@@ -37,7 +36,7 @@ def test_save_merges_and_keeps_other_keys(tmp_path):
     f = tmp_path / "config.yaml"
     f.write_text("economy:\n  market_share: 0.3\n")
     config.save(f, {"tsm": {"region": "us", "realm": "pvp-horde"}})
-    data = yaml.safe_load(f.read_text())
+    data = yamlio.load(f.read_text())
     assert data["economy"]["market_share"] == 0.3 and data["tsm"]["realm"] == "pvp-horde"
     with pytest.raises(config.ConfigError):
         config.save(f, {"tsm": {"region": "us", "realm": "nope"}})
@@ -136,3 +135,13 @@ def test_background_waits_after_a_recent_tsm_check(tmp_path, monkeypatch):
     bg.stop.set()
     t.join(2)
     assert calls == []
+
+
+def test_yaml_round_trip_keeps_order_and_unicode():
+    data = {"wow": {"game_dir": "D:/Wörld of Warcraft/_forever_", "account": None},
+            "player": {"professions": ["Leatherworking", "First Aid"]}, "tsm": {"realm": "pvp-horde"}}
+    text = yamlio.dump(data)
+    assert yamlio.load(text) == data
+    assert text.index("wow") < text.index("player") < text.index("tsm")
+    assert "Wörld" in text
+    assert yamlio.load("") is None

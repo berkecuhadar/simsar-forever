@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-import yaml
+from .. import yamlio
 
 VERDICTS = {
     "craft": "Craft and sell, even when buying the materials",
@@ -27,7 +27,7 @@ def load_recipes(conn, cfg=None):
     seen = {(r["profession"].lower(), (r["product_name"] or r["name"]).lower()) for r in recipes.values()}
     for path in _yaml_sources(cfg):
         with path.open(encoding="utf-8") as f:
-            spec = yaml.safe_load(f) or {}
+            spec = yamlio.load(f) or {}
         for i, r in enumerate(spec.get("recipes") or []):
             product = r.get("product") or r["name"]
             if (r["profession"].lower(), product.lower()) in seen:

@@ -2,9 +2,7 @@ import copy
 import os
 from pathlib import Path
 
-import yaml
-
-from . import forever
+from . import forever, yamlio
 
 DEFAULTS = {
     "tsm": {
@@ -86,7 +84,7 @@ def load(path=None, overrides=None):
     user = {}
     if path.exists():
         with open(path, encoding="utf-8") as f:
-            user = yaml.safe_load(f) or {}
+            user = yamlio.load(f) or {}
         if not isinstance(user, dict):
             raise ConfigError(f"{path} must contain a mapping at the top level")
     cfg = _merge(DEFAULTS, user)
@@ -104,12 +102,12 @@ def save(path, updates):
     user = {}
     if path.exists():
         with open(path, encoding="utf-8") as f:
-            user = yaml.safe_load(f) or {}
+            user = yamlio.load(f) or {}
     merged = _merge(user, updates)
     validate(_merge(DEFAULTS, merged) | {"_path": str(path), "_base_dir": str(path.parent)})
     text = ("# Simsar Forever settings. Written by the setup page; every key is optional.\n"
             "# See config.example.yaml for all settings and what they mean.\n")
-    text += yaml.safe_dump(merged, sort_keys=False, allow_unicode=True)
+    text += yamlio.dump(merged)
     path.write_text(text, encoding="utf-8")
     return merged
 

@@ -2,7 +2,7 @@ import re
 from importlib import resources
 from pathlib import Path
 
-import yaml
+from . import yamlio
 
 DEMO_SUFFIX = re.compile(r" \(demo\)$")
 
@@ -19,12 +19,12 @@ def _compile(patterns, key):
 
 def load(cfg=None):
     with resources.files("simsar_forever").joinpath("data/groups.yaml").open(encoding="utf-8") as f:
-        spec = yaml.safe_load(f)["groups"]
+        spec = yamlio.load(f)["groups"]
     if cfg:
         user_file = Path(cfg["_base_dir"]) / "groups.yaml"
         if user_file.exists():
             with open(user_file, encoding="utf-8") as f:
-                spec.update((yaml.safe_load(f) or {}).get("groups", {}))
+                spec.update((yamlio.load(f) or {}).get("groups", {}))
     groups = []
     for key, g in spec.items():
         groups.append({
