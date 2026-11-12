@@ -131,6 +131,7 @@ def build(conn, days=14, seed=7, now=None):
     ]
     conn.executemany("INSERT INTO inventory VALUES(?,?,?,?,0)",
                      [(k, loc, ids[name], n) for k, loc, name, n in holdings])
+    build_ledger(conn, rnd, now, chars, ids)
 
     db.set_meta(conn, "demo", True)
     db.set_meta(conn, "tsm_realm_updated_at", stamps[-1])
@@ -138,3 +139,42 @@ def build(conn, days=14, seed=7, now=None):
     bump_data_version(conn)
     conn.commit()
     return {"items": len(ITEMS), "snapshots": n, "recipes": len(RECIPES)}
+
+
+def build_ledger(conn, rnd, now, chars, ids):
+    """Thirty days of made-up gold movements for the demo characters."""
+    day_rows, balance_rows, tx_rows = [], [], []
+    for key, _, _, money in chars:
+        # Scaled to the character's gold so the history ends at the gold it has now.
+        scale = max(money // 400, 100)
+        balance = money
+        for back in range(30):
+            t = now - back * 86400
+            day = int(time.strftime("%Y%m%d", time.localtime(t)))
+            balance_rows.append((key, day, "simsar", max(balance, 0)))
+            moves = {
+                "AH_SALE": rnd.randint(2, 30) * scale, "AH_BUY": -rnd.randint(0, 14) * scale,
+                "AH_DEPOSIT": -rnd.randint(1, 20) * scale // 50, "VENDOR": rnd.randint(1, 80) * scale // 20,
+                "REPAIR": -rnd.randint(0, 30) * scale // 20, "QUEST": rnd.randint(0, 3) * scale // 2,
+                "LOOT": rnd.randint(0, 40) * scale // 20,
+            }
+            if back % 7 == 3:
+                moves["TRAINING"] = -rnd.randint(1, 5) * scale
+            for cat, amount in moves.items():
+                if amount:
+                    day_rows.append((key, day, cat, "simsar", max(amount, 0), max(-amount, 0), 1))
+                    tx_rows.append((key, t - rnd.randint(0, 80000), amount, cat, "simsar", "Demo Zone"))
+                    balance -= amount
+    conn.executemany("INSERT OR REPLACE INTO ledger_days VALUES(?,?,?,?,?,?,?)", day_rows)
+    conn.executemany("INSERT OR REPLACE INTO balances VALUES(?,?,?,?)", balance_rows)
+    conn.executemany("INSERT OR IGNORE INTO ledger_tx VALUES(?,?,?,?,?,?)", tx_rows)
+    sold = [("Heavy Armor Kit", 1, 16000), ("Cured Heavy Hide", 5, 13000), ("Bolt of Silk Cloth", 10, 11500),
+            ("Heavy Armor Kit", 1, 15500), ("Silk Cloth", 20, 5200)]
+    conn.executemany(
+        "INSERT OR IGNORE INTO ah_invoices(seen_at, item_name, quantity, bid, buyout, deposit, consignment, char_key) "
+        "VALUES(?,?,?,?,?,?,?,?)",
+        [(now - i * 40000, label(n), q, p, p, 0, round(p * 0.05), chars[0][0]) for i, (n, q, p) in enumerate(sold)])
+    conn.executemany(
+        "INSERT OR IGNORE INTO mail_events VALUES(?,?,?,?,?,?,?,?)",
+        [("demo-buy-1", "bought", now - 90000, chars[0][0], label("Heavy Leather"), ids["Heavy Leather"], 20, 8400),
+         ("demo-exp-1", "expired", now - 50000, chars[0][0], label("Heavy Armor Kit"), ids["Heavy Armor Kit"], 1, None)])

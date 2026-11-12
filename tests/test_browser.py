@@ -71,6 +71,7 @@ def render(url, profile):
     ("/glossary", ["Opportunity cost", "Sale rate"]),
     ("/status", ["Data status", "Auction house cut"]),
     ("/inventory", ["Bags and bank", "Leatherhand (demo)", "Heavy Leather (demo)"]),
+    ("/ledger", ["Gold ledger", "Auction sales", "Heavy Armor Kit (demo)", "Gold over time"]),
 ])
 def test_page_renders(server, path, expected):
     base, tmp = server

@@ -98,3 +98,21 @@ def test_tooltip_data_is_skipped_without_the_addon(tmp_path):
     cfg = config.load(tmp_path / "config.yaml")
     cfg["wow"]["game_dir"] = str(tmp_path)
     assert tooltip_data.write(cfg, None, {"items": []}) is None
+
+
+def test_ledger_prefers_the_addon_over_accountant_for_the_same_day():
+    from simsar_forever.analysis import ledger
+    conn = db.connect(":memory:")
+    conn.executemany("INSERT INTO ledger_days VALUES(?,?,?,?,?,?,?)", [
+        ("A-R", 20261110, "VENDOR", "accountant", 100, 0, 1),     # only Accountant knows this day
+        ("A-R", 20261111, "VENDOR", "accountant", 999, 0, 1),     # both know this day: the addon wins
+        ("A-R", 20261111, "VENDOR", "simsar", 50, 0, 1),
+        ("A-R", 20261111, "REPAIR", "simsar", 0, 20, 1),
+    ])
+    conn.executemany("INSERT INTO balances VALUES(?,?,?,?)", [
+        ("A-R", 20261110, "accountant", 1000), ("A-R", 20261111, "accountant", 1999), ("A-R", 20261111, "simsar", 1030)])
+    out = ledger.build(conn)
+    assert sorted((r["day"], r["category"], r["income"]) for r in out["days"]) == [
+        (20261110, "VENDOR", 100), (20261111, "REPAIR", 0), (20261111, "VENDOR", 50)]
+    assert out["balances"]["A-R"] == [(20261110, 1000), (20261111, 1030)]
+    assert [c["char_key"] for c in out["characters"]] == ["A-R"]      # known only from the ledger

@@ -30,7 +30,13 @@
 
 ### Dashboard
 
-- Imports the gold history of Accountant Classic when that addon is installed.
+- **Gold ledger page.** Income and spending per character and category for today, yesterday, this
+  and last week, month, year or all time; net per day with gold on hand; gold over time per
+  character; every auction item with what it sold for, what you paid, the cut and how often your
+  listings sold; and the single gold movements of the last 90 days. Gold moved between your own
+  characters is shown but left out of profit.
+- Imports the gold history of Accountant Classic when that addon is installed, so the ledger
+  reaches back to before the Simsar Forever addon was installed.
 
 ## 0.1.2 (2026-11-12)
 

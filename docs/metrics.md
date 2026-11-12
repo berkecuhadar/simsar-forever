@@ -198,6 +198,50 @@ latest prices every time the page loads, so it follows the market without a new 
 It is what the items would fetch, not what you could sell at once: `days_to_sell` shows how long the
 market needs to absorb them.
 
+## Gold ledger
+
+The addon watches the character's gold. Each change is booked under a category decided at that
+moment, in this order:
+
+1. **An exact amount it was told to expect.** Taking money from a mail books it as an auction sale
+   when the mail is a sale invoice, as a transfer when the sender is one of your characters, as mail
+   otherwise. A quest reward is announced with its amount by the game.
+2. **An action seen in the last 10 seconds.** Posting an auction (deposit), buying on the auction
+   house, repairing, taking a flight, sending mail (to one of your characters: transfer), group loot.
+3. **The window that is open**, or was closed less than 3 seconds ago: vendor (repair mode counts as
+   repair), auction house, mailbox, trainer, flight master, trade (with one of your characters:
+   transfer), loot, quest, bank, guild bank, barber.
+4. Otherwise **Other**.
+
+Gold that changed while the addon was not running (another computer, an older addon version) is
+booked once at the next login as **While not recording**, so the days still add up to the balance.
+Characters saved by addon 0.1.x have no trusted balance and get no such entry.
+
+Stored per character: daily totals per category (kept for good), single movements for the last 90
+days (at most 1500), and the gold on hand at the end of each day.
+
+```
+net          = income - spending, without "Between your characters"
+auction net  = auction sales - auction purchases - deposits - other auction house payments
+```
+
+**Accountant Classic.** When its SavedVariables file exists, its per-day history is imported. Its
+categories are mapped to Simsar Forever's (its auction income is sale mail, so it becomes
+"Auction sales"; its auction spending stays "Auction house, other" because it does not tell
+deposits from purchases). For a character and day the addon's own record wins; Accountant Classic
+fills only the days the addon did not record.
+
+**Auction house, item by item** comes from mail, not from gold changes: sale invoices (received
+after the cut), "auction won" mails (price paid) and expired or cancelled auctions.
+
+```
+sell_through = sold auctions / (sold + expired + cancelled)
+```
+
+Failure modes: a gold change while two things happen at once (looting while a vendor window is
+open) goes to whichever rule matches first; mail opened by another addon in bulk can arrive faster
+than the game reports gold, which the exact-amount match in step 1 is there to handle.
+
 ## Alerts
 
 After each data update:

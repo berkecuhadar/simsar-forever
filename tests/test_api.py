@@ -77,3 +77,12 @@ def test_item_stats(client):
     stats = client.get(f"/api/items/{items[0]['item_id']}/stats").json()
     assert set(stats) == {"mean_reversion", "forecast", "elasticity", "timing"}
     assert stats["forecast"]["ok"]          # the demo has 14 days of prices
+
+
+def test_ledger(client):
+    data = client.get("/api/ledger").json()
+    assert {c["char_key"] for c in data["characters"]} == {"Leatherhand-Demo", "Threadbare-Demo"}
+    assert data["days"] and data["transactions"] and data["balances"]["Leatherhand-Demo"]
+    assert data["categories"]["TRANSFER"]["kind"] == "transfer"
+    kit = next(r for r in data["auction_items"] if r["name"] == "Heavy Armor Kit (demo)")
+    assert kit["sold"] == 2 and kit["expired"] == 1 and abs(kit["sell_through"] - 2 / 3) < 1e-9

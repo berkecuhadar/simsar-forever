@@ -16,6 +16,7 @@ from .. import __version__, addon_install, config, db, discover, forever, icons,
 from .. import groups as groupmod
 from ..analysis import crafts as craftmod
 from ..analysis import econometrics, explain, inventory, market
+from ..analysis import ledger as ledgermod
 from ..analysis.engine import Engine
 from . import status as statusmod
 
@@ -180,6 +181,10 @@ def create_app(cfg, background=True):
     @app.get("/api/inventory")
     def inventory_view():
         return inventory.build(rt.conn(), rt.engine.result())
+
+    @app.get("/api/ledger")
+    def ledger_view():
+        return ledgermod.build(rt.conn())
 
     @app.get("/api/meta")
     def meta():

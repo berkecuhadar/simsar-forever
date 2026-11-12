@@ -8,6 +8,7 @@ price history in SQLite, and answers practical questions in a web page on your o
 - Which of my gathered materials earn the most per day, for every profession?
 - Which recipes are worth crafting, and is crafting better than selling the materials?
 - What is everything in my characters' bags and banks worth at today's prices?
+- Where did my gold come from and go, per character, day and category, and how has it grown?
 - How long does a recipe take to pay for itself?
 - What is cheap right now, and is it cheap or just falling?
 - Does this price snap back, where is it heading, how sensitive are buyers to it, and when in the

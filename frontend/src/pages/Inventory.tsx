@@ -11,7 +11,7 @@ import { useApp } from "../context";
 import { Money, ago, num } from "../format";
 import { useData, useStored } from "../hooks";
 
-const CLASS_COLORS: Record<string, string> = {
+export const CLASS_COLORS: Record<string, string> = {
   WARRIOR: "#c69b6d", PALADIN: "#f48cba", HUNTER: "#aad372", ROGUE: "#fff468", PRIEST: "#ffffff",
   SHAMAN: "#0070dd", MAGE: "#3fc7eb", WARLOCK: "#8788ee", DRUID: "#ff7c0a",
 };

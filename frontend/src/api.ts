@@ -269,6 +269,25 @@ export interface ItemDetail {
   crafts: Craft[];
 }
 
+export interface AuctionItem {
+  name: string; item_id: number | null; quality: number | null; icon_id: number | null;
+  sold: number; sales: number; gross: number; cut: number; net: number;
+  bought: number; purchases: number; spent: number; expired: number; cancelled: number; last: number;
+  avg_sale: number | null; avg_buy: number | null; sell_through: number | null; margin: number;
+}
+
+export interface LedgerData {
+  characters: { char_key: string; name: string | null; realm: string | null; class: string | null;
+    faction: string | null; money: number | null; money_at: number | null }[];
+  categories: Record<string, { label: string; kind: "trade" | "earn" | "cost" | "other" | "transfer" }>;
+  days: { char_key: string; day: number; category: string; income: number; expense: number; n: number }[];
+  balances: Record<string, [number, number][]>;
+  transactions: { char_key: string; t: number; amount: number; category: string; source: string; zone: string | null }[];
+  auction_items: AuctionItem[];
+  sources: string[];
+  simsar_since: number | null;
+}
+
 async function get<T>(path: string): Promise<T> {
   const r = await fetch(path);
   if (!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
@@ -284,6 +303,7 @@ export const api = {
   itemStats: (id: number) => get<ItemStats>(`/api/items/${id}/stats`),
   inventory: () => get<{ characters: Character[]; items: InventoryItem[]; ah_cut: number; auction_house: string }>("/api/inventory"),
   crafts: () => get<Craft[]>("/api/crafts"),
+  ledger: () => get<LedgerData>("/api/ledger"),
   alerts: () => get<Alert[]>("/api/alerts"),
   markSeen: () => fetch("/api/alerts/seen", { method: "POST" }),
   refresh: () => fetch("/api/refresh", { method: "POST" }).then((r) => r.json()),
